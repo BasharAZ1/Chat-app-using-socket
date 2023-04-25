@@ -59,7 +59,7 @@ def send_message():
 
 root = tk.Tk()
 root.geometry("600x600")
-root.title("Messenger Client")
+root.title("Kinan")
 root.resizable(False, False)
 
 root.grid_rowconfigure(0, weight=1)
