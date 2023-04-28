@@ -5,15 +5,18 @@ import tkinter as tk
 from tkinter import scrolledtext, BOTH, ttk
 from tkinter import messagebox
 import customtkinter
+import tkinter.messagebox as messagebox
 
 HOST = '127.0.0.1'
 PORT = 1234
+Error_message_flag=False
 FONT_labels = ("Helvetica", 30)
 DARK_GREY = '#121212'
+DARK_GREY_Sign_UP = '#A9A9A9'
 MEDIUM_GREY = '#1F1B24'
 OCEAN_BLUE = '#464EB8'
 WHITE = "white"
-FONT = ("Helvetica", 17)
+FONT = ("Helvetica", 14)
 BUTTON_FONT = ("Helvetica", 15)
 SMALL_FONT = ("Helvetica", 13)
 
@@ -22,6 +25,33 @@ SMALL_FONT = ("Helvetica", 13)
 # SOCK_STREAM: we are using TCP packets for communication
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+import tkinter.messagebox as messagebox
+
+def register_user(Sign_up_page,window, Username, password1, password2):
+    if not Username:
+        messagebox.showerror("Error", "Please enter a username")
+        window.focus()
+        return
+    elif not password1 or not password2:
+        messagebox.showerror("Error", "Please enter both passwords")
+        window.focus()
+        return
+    elif password1 != password2:
+        messagebox.showerror("Error", "Passwords do not match")
+        window.focus()
+        return
+    else:
+        messagebox.showinfo("Success", "User registered successfully!")
+        Sign_up_page.destroy()
+
+
+
+
+
+
+
+
+
 
 def Connect_user(Username, password):
     print(Username + password)
@@ -29,6 +59,62 @@ def Connect_user(Username, password):
 
 def on_label_click():
     print("Label clicked")
+    Sign_up_page = tk.Toplevel()
+    Sign_up_page.title("Sign up")
+    Sign_up_page.geometry("600x600")
+    Sign_up_page.focus()
+    # Username field
+    window = tk.Frame(Sign_up_page, width=600, height=600, bg=DARK_GREY_Sign_UP)
+    window.pack(expand=1, fill=BOTH)
+    username_label = tk.Label(window, text="Username", font=FONT, bg=DARK_GREY_Sign_UP, fg=WHITE)
+    username_label.grid(row=0, column=0, padx=0, pady=10, sticky="w")
+    username_entry = customtkinter.CTkEntry(window, width=200, font=('Arial', 16), height=3, corner_radius=8)
+    username_entry.grid(row=0, column=1, padx=0, pady=10)
+
+    # Password fields
+    password_label = tk.Label(window, text="Password", font=FONT, bg=DARK_GREY_Sign_UP, fg=WHITE)
+    password_label.grid(row=1, column=0, padx=0, pady=10, sticky="w")
+    password_entry = customtkinter.CTkEntry(window, show="*", width=200, font=('Arial', 16), height=3, corner_radius=8)
+    password_entry.grid(row=1, column=1, padx=0, pady=10)
+
+    password_label2 = tk.Label(window, text="Confirm Password", font=FONT, bg=DARK_GREY_Sign_UP, fg=WHITE)
+    password_label2.grid(row=2, column=0, padx=0, pady=10, sticky="w")
+    password_entry2 = customtkinter.CTkEntry(window, show="*", width=200, font=('Arial', 16), height=3, corner_radius=8)
+    password_entry2.grid(row=2, column=1, padx=0, pady=10)
+
+    # First name field
+    first_name_label = tk.Label(window, text="First Name", font=FONT, bg=DARK_GREY_Sign_UP, fg=WHITE)
+    first_name_label.grid(row=3, column=0, padx=0, pady=10, sticky="w")
+    first_name_entry = customtkinter.CTkEntry(window, width=200, font=('Arial', 16), height=3, corner_radius=8)
+    first_name_entry.grid(row=3, column=1, padx=0, pady=10)
+
+    # Second name field
+    second_name_label = tk.Label(window, text="Last Name", font=FONT, bg=DARK_GREY_Sign_UP, fg=WHITE)
+    second_name_label.grid(row=4, column=0, padx=0, pady=10, sticky="w")
+    second_name_entry = customtkinter.CTkEntry(window, width=200, font=('Arial', 16), height=3, corner_radius=8)
+    second_name_entry.grid(row=4, column=1, padx=0, pady=10)
+
+    # Gender field
+    gender_label = tk.Label(window, text="Gender", font=FONT, bg=DARK_GREY_Sign_UP, fg=WHITE)
+    gender_label.grid(row=5, column=0, padx=0, pady=10, sticky="w")
+
+    gender_var = tk.StringVar(value="Select")
+    gender_combobox = customtkinter.CTkComboBox(master=window,
+                                                                values=[ "Select","Male","Female"],width=200)
+    gender_combobox.grid(row=5, column=1, padx=10, pady=10, sticky="w")
+    gender_combobox.set("Select")
+
+    # Email field
+    email_label = tk.Label(window, text="Email", font=FONT, bg=DARK_GREY_Sign_UP, fg=WHITE)
+    email_label.grid(row=6, column=0, padx=0, pady=10, sticky="w")
+    email_entry = customtkinter.CTkEntry(window, width=200, font=('Arial', 16), height=3, corner_radius=8)
+    email_entry.grid(row=6, column=1, padx=0, pady=10)
+
+    # Submit button
+    submit_button = customtkinter.CTkButton(window, text="Submit", corner_radius=8, height=10, width=200,
+                                            font=('Arial', 24),command=lambda: register_user (Sign_up_page,window,username_entry.get(), password_entry.get(),password_entry2.get()))
+    submit_button.grid(row=7, column=2, padx=0, pady=40, sticky="e")
+
 
 
 def add_message(message):
@@ -94,12 +180,14 @@ Login_button = customtkinter.CTkButton(LoginPage_topFrame, text="Login", text_co
                                        width=150, bg_color=OCEAN_BLUE,
                                        command=lambda: Connect_user(Username_textbox.get(), Password_textbox.get()))
 Login_button.grid(row=6, column=1, padx=20, pady=20, sticky="nsew")
-Forget_password_label=customtkinter.CTkLabel(LoginPage_topFrame, text="Forgot Password?", height=10, width=10, anchor='center',
-                                       font=('Arial',16), bg_color=DARK_GREY, text_color='#D3D3D3')
+Forget_password_label = customtkinter.CTkLabel(LoginPage_topFrame, text="Forgot Password?", height=10, width=10,
+                                               anchor='center',
+                                               font=('Arial', 16), bg_color=DARK_GREY, text_color='#D3D3D3')
 
-Forget_password_label.grid(row=7,column=1,padx=5, pady=0, sticky="ne")
-Sign_Up_label = customtkinter.CTkLabel(LoginPage_topFrame, text="Need an account? Sign up", height=10, width=10, anchor='center',
-                                       font=('Arial',20), bg_color=DARK_GREY, text_color='#0077cc')
+Forget_password_label.grid(row=7, column=1, padx=5, pady=0, sticky="ne")
+Sign_Up_label = customtkinter.CTkLabel(LoginPage_topFrame, text="Need an account? Sign up", height=10, width=10,
+                                       anchor='center',
+                                       font=('Arial', 20), bg_color=DARK_GREY, text_color='#0077cc')
 Sign_Up_label.grid(row=8, column=1, padx=5, pady=280, sticky="nsew")
 Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
 
