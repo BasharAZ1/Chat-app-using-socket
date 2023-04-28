@@ -2,6 +2,7 @@
 import socket
 import threading
 import tkinter as tk
+import re
 from tkinter import scrolledtext, BOTH, ttk
 from tkinter import messagebox
 import customtkinter
@@ -9,7 +10,7 @@ import tkinter.messagebox as messagebox
 
 HOST = '127.0.0.1'
 PORT = 1234
-Error_message_flag=False
+Error_message_flag = False
 FONT_labels = ("Helvetica", 30)
 DARK_GREY = '#121212'
 DARK_GREY_Sign_UP = '#A9A9A9'
@@ -27,34 +28,62 @@ client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 import tkinter.messagebox as messagebox
 
-def register_user(Sign_up_page,window, Username, password1, password2):
+
+def register_user(Sign_up_page, window, Username, password1, password2, FirstName, LastName, gender, Email):
     if not Username:
         messagebox.showerror("Error", "Please enter a username")
         window.focus()
         return
-    elif not password1 or not password2:
-        messagebox.showerror("Error", "Please enter both passwords")
+    #######check with the server if the username already exists
+
+    elif not is_valid_password(password1) or not is_valid_password(password2):
+        messagebox.showerror("Error", " At least 8 characters\n At least one capital and one small character \n both "
+                                      "password must match")
         window.focus()
         return
     elif password1 != password2:
         messagebox.showerror("Error", "Passwords do not match")
         window.focus()
         return
+
+    elif not FirstName:
+        messagebox.showerror("Error", "Please enter a FirstName")
+        window.focus()
+        return
+    elif not LastName:
+        messagebox.showerror("Error", "Please enter a LastName")
+        window.focus()
+        return
+    elif gender == 'Select':
+        messagebox.showerror("Error", "Please Select Gender")
+        window.focus()
+        return
+
+    elif not is_valid_email(Email):
+        messagebox.showerror("Error", "Please Enter Valid Email ")
+        window.focus()
+        return
     else:
+        # client.sendall(username.encode())
         messagebox.showinfo("Success", "User registered successfully!")
         Sign_up_page.destroy()
 
 
-
-
-
-
-
-
-
-
 def Connect_user(Username, password):
     print(Username + password)
+
+
+def is_valid_email(email):
+    pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+    return re.match(pattern, email) is not None
+
+
+def is_valid_password(password):
+    if len(password) < 8:
+        return False
+    if not re.search("[A-Z]", password) or not re.search("[a-z]", password):
+        return False
+    return True
 
 
 def on_label_click():
@@ -100,7 +129,7 @@ def on_label_click():
 
     gender_var = tk.StringVar(value="Select")
     gender_combobox = customtkinter.CTkComboBox(master=window,
-                                                                values=[ "Select","Male","Female"],width=200)
+                                                values=["Select", "Male", "Female"], width=200)
     gender_combobox.grid(row=5, column=1, padx=10, pady=10, sticky="w")
     gender_combobox.set("Select")
 
@@ -112,9 +141,13 @@ def on_label_click():
 
     # Submit button
     submit_button = customtkinter.CTkButton(window, text="Submit", corner_radius=8, height=10, width=200,
-                                            font=('Arial', 24),command=lambda: register_user (Sign_up_page,window,username_entry.get(), password_entry.get(),password_entry2.get()))
+                                            font=('Arial', 24),
+                                            command=lambda: register_user(Sign_up_page, window, username_entry.get(),
+                                                                          password_entry.get(), password_entry2.get(),
+                                                                          first_name_entry.get(),
+                                                                          second_name_entry.get(),
+                                                                          gender_combobox.get(), email_entry.get()))
     submit_button.grid(row=7, column=2, padx=0, pady=40, sticky="e")
-
 
 
 def add_message(message):
@@ -241,7 +274,7 @@ def listen_for_messages_from_server(client):
             add_message(f"[{username}] {content}")
 
         else:
-            messagebox.showerror("Error", "Message recevied from client is empty")
+            messagebox.showerror("Error", "Message received from client is empty")
 
 
 # main function
