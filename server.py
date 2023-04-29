@@ -49,10 +49,13 @@ def client_handler(client):
         msg_parts = message.split(',')
         print(msg_parts[0])
         if(msg_parts[0] == "Sign Up"):
-            if(q.add_user(msg_parts[1],msg_parts[2],msg_parts[3],msg_parts[4],msg_parts[5],msg_parts[6])):
+            checker,check_msg = q.add_user(msg_parts[1],msg_parts[2],msg_parts[3],msg_parts[4],msg_parts[5],msg_parts[6])
+            if checker:
+                send_message_to_client(client, check_msg)
                 print("success!!")
             else:
-                print("error adding user")
+                send_message_to_client(client, check_msg)
+
         elif(msg_parts[0] == "Sign In"):
             print("Error!!!")
 
@@ -67,6 +70,7 @@ def client_handler(client):
     # threading.Thread(target=listen_for_messages, args=(client, username, )).start()
 
 # Main function
+
 def main():
 
     # Creating the socket class object

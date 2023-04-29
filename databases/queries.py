@@ -95,8 +95,8 @@ def is_valid_password(password):
 def add_user(username, password, first_name, last_name, gender, email):
     if not is_valid_password(password):
         print("Invalid password.")
-        print("length 8 atleast,and one small and big characters")
-        return False
+        print()
+        return False, "length 8 atleast,and one small and big characters"
 
     hashed_pass = hash_password(password)
 
@@ -109,11 +109,11 @@ def add_user(username, password, first_name, last_name, gender, email):
                        (username, hashed_pass, first_name, last_name, gender, email))
 
         connection.commit()
-        print("User added successfully.")
-        return True
+
+        return True, "User added successfully."
     except mysql.connector.errors.IntegrityError:
-        print("User with this email or username already exists.")
-        return False
+        print()
+        return False, "User with this email or username already exists."
     finally:
         connection.close()
 
