@@ -69,10 +69,7 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
             client.connect((HOST, PORT))
             print("Successfully connected to server")
             client.sendall(register_message.encode())
-            print("Register message sent successfully")
-            messagebox.showinfo("Success", "User registered successfully!")
 
-            Sign_up_page.destroy()
         except ConnectionRefusedError:
             messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
         except Exception as e:
@@ -275,16 +272,26 @@ Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
 
 def listen_for_messages_from_server(client):
     while 1:
+        received_list = client.recv(2048).decode('utf-8').split(",")
+        if(received_list[0] == "Sign Up"):
+            if (received_list[1] == "True"):
+                print("Register message sent successfully")
+                messagebox.showinfo("Success", "User registered successfully!")
+                Sign_up_page.destroy()
+            else:
+                messagebox.showerror("Error", received_list[2])
 
-        message = client.recv(2048).decode('utf-8')
-        if message != '':
-            username = message.split("~")[0]
-            content = message.split('~')[1]
-
-            add_message(f"[{username}] {content}")
-
-        else:
-            messagebox.showerror("Error", "Message received from client is empty")
+        if(received_list[0] == "Sign In"):
+            pass
+            # message = client.recv(2048).decode('utf-8')
+            # if message != '':
+            #     username = message.split("~")[0]
+            #     content = message.split('~')[1]
+            #
+            #     add_message(f"[{username}] {content}")
+            #
+            # else:
+            #     messagebox.showerror("Error", "Message received from client is empty")
 
 
 # main function

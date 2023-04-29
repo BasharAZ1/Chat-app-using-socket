@@ -49,12 +49,9 @@ def client_handler(client):
         msg_parts = message.split(',')
         print(msg_parts[0])
         if(msg_parts[0] == "Sign Up"):
-            checker,check_msg = q.add_user(msg_parts[1],msg_parts[2],msg_parts[3],msg_parts[4],msg_parts[5],msg_parts[6])
-            if checker:
-                send_message_to_client(client, check_msg)
-                print("success!!")
-            else:
-                send_message_to_client(client, check_msg)
+            check_msg = q.add_user(msg_parts[1],msg_parts[2],msg_parts[3],msg_parts[4],msg_parts[5],msg_parts[6])
+            # check_list = check_msg.split(",")
+            send_message_to_client(client, check_msg)
 
         elif(msg_parts[0] == "Sign In"):
             print("Error!!!")
