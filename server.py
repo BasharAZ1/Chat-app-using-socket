@@ -42,16 +42,20 @@ def client_handler(client):
     # Contain the username
     while 1:
 
-        username = client.recv(2048).decode('utf-8')
-        if username != '':
-            active_clients.append((username, client))
-            prompt_message = "SERVER~" + f"{username} added to the chat"
-            send_messages_to_all(prompt_message)
-            break
-        else:
-            print("Client username is empty")
+        message = client.recv(2048).decode('utf-8')
 
-    threading.Thread(target=listen_for_messages, args=(client, username, )).start()
+        # Split the message into parts using the delimiter ','
+        parts = message.split(',')
+        print(parts[0])
+        # if username != '':
+        #     active_clients.append((username, client))
+        #     prompt_message = "SERVER~" + f"{username} added to the chat"
+        #     send_messages_to_all(prompt_message)
+        #     break
+        # else:
+        #     print("Client username is empty")
+
+    # threading.Thread(target=listen_for_messages, args=(client, username, )).start()
 
 # Main function
 def main():

@@ -34,8 +34,6 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
         messagebox.showerror("Error", "Please enter a username")
         window.focus()
         return
-    #######check with the server if the username already exists
-
     elif not is_valid_password(password1) or not is_valid_password(password2):
         messagebox.showerror("Error", " At least 8 characters\n At least one capital and one small character \n both "
                                       "password must match")
@@ -64,9 +62,19 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
         window.focus()
         return
     else:
-        # client.sendall(username.encode())
-        messagebox.showinfo("Success", "User registered successfully!")
-        Sign_up_page.destroy()
+        register_message = 'Sign Up,' + Username + ',' + password1 + ',' + FirstName + ',' + LastName + ',' + gender + ',' + Email
+        # try except block
+        try:
+            # Connect to the server
+            client.connect((HOST, PORT))
+            print("Successfully connected to server")
+            client.sendall(register_message.encode())
+            print("Register message sent successfully")
+            messagebox.showinfo("Success", "User registered successfully!")
+        except ConnectionRefusedError:
+            messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
+        except Exception as e:
+            messagebox.showerror("Error", f"An error occurred: {e}")
 
 
 def Connect_user(Username, password):
