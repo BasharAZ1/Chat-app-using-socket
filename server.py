@@ -1,6 +1,7 @@
 # Import required modules
 import socket
 import threading
+from databases import queries as q
 
 HOST = '127.0.0.1'
 PORT = 1234 # You can use any port between 0 to 65535
@@ -45,8 +46,16 @@ def client_handler(client):
         message = client.recv(2048).decode('utf-8')
 
         # Split the message into parts using the delimiter ','
-        parts = message.split(',')
-        print(parts[0])
+        msg_parts = message.split(',')
+        print(msg_parts[0])
+        if(msg_parts[0] == "Sign Up"):
+            if(q.add_user(msg_parts[1],msg_parts[2],msg_parts[3],msg_parts[4],msg_parts[5],msg_parts[6])):
+                print("success!!")
+            else:
+                print("error adding user")
+        elif(msg_parts[0] == "Sign In"):
+            print("Error!!!")
+
         # if username != '':
         #     active_clients.append((username, client))
         #     prompt_message = "SERVER~" + f"{username} added to the chat"
@@ -77,6 +86,7 @@ def main():
     # Set server limit
     server.listen(LISTENER_LIMIT)
 
+    q.create_users_table()
     # This while loop will keep listening to client connections
     while 1:
 
