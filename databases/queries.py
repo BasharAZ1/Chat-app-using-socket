@@ -1,7 +1,8 @@
 import mysql.connector
 import re
-
+import hashlib
 import mysql.connector
+
 HOST = "localhost"
 USER = "root"
 PASSWORD = "12332100"
@@ -41,16 +42,27 @@ def create_users_table():
 
     cursor = connection.cursor()
 
-    cursor.execute("""CREATE TABLE IF NOT EXISTS test (
-                        email VARCHAR(255) PRIMARY KEY,
+    cursor.execute("""CREATE TABLE IF NOT EXISTS usertable (
+                        
                         username VARCHAR(255) UNIQUE,
                         password VARCHAR(255),
-                        birthdate DATE
+                        firstname VARCHAR(255),
+                        lastname VARCHAR(255),
+                        gender VARCHAR(255),
+                        email VARCHAR(255) PRIMARY KEY
                      )""")
 
     connection.commit()
     connection.close()
 
+def hash_password(password):
+    # Convert the password to bytes
+    password_bytes = password.encode('utf-8')
+    # Hash the password using SHA-256
+    hashed_bytes = hashlib.sha256(password_bytes).digest()
+    # Convert the hashed bytes to a string
+    hashed_password = hashed_bytes.hex()
+    return hashed_password
 
 def is_valid_password(password):
     if len(password) < 8:
@@ -80,18 +92,21 @@ def is_valid_password(password):
 #         connection.close()
 
 
-def add_user(email, username, password, birthdate):
+def add_user(username, password, first_name, last_name, gender, email):
     if not is_valid_password(password):
         print("Invalid password.")
         print("length 8 atleast,and one small and big characters")
         return False
 
+    hashed_pass = hash_password(password)
+
     connection = create_connection()
     cursor = connection.cursor()
 
     try:
-        cursor.execute("INSERT INTO chatdb.users (email, username, password, birthdate) VALUES (%s, %s, %s, %s)",
-                       (email, username, password, birthdate))
+        cursor.execute("INSERT INTO chatdb.usertable (username, password, firstname, lastname, gender, email)"
+                       " VALUES (%s, %s, %s, %s, %s, %s)",
+                       (username, hashed_pass, first_name, last_name, gender, email))
 
         connection.commit()
         print("User added successfully.")
@@ -106,13 +121,18 @@ def add_user(email, username, password, birthdate):
 def login(username, password):
     connection = create_connection()
     cursor = connection.cursor()
-
-    cursor.execute("SELECT password FROM chatdb.users WHERE username = %s", (username,))
+    query = "SELECT password FROM chatdb.usertable WHERE username = %s"
+    cursor.execute(query, (username,))
     result = cursor.fetchone()
 
-    if result and result[0] == password:
+    if result is None:
+
+        return False
+    hashed_pass = result[0]
+    hash_input = hash_password(password)
+    if hash_input == hashed_pass:
         print("Login successful.")
         return True
     else:
-        print("Invalid username or password.")
+        print("Invalid password.")
         return False
