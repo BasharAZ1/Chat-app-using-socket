@@ -87,7 +87,22 @@ def main():
     # Set server limit
     server.listen(LISTENER_LIMIT)
 
-    q.create_users_table()
+    # q.create_users_table()
+    # print("1")
+    # q.add_user("bashbash","12332100Kh","kino", "ino", "male","k@fg.com")
+    # print("2")
+    # q.login("kinann","12332100Kh")
+    # print("3")
+    # q.add_user("ssss", "12332100Kh", "kino", "ino", "male", "k@fg.com")
+    # print("4")
+    # q.add_user("kinann", "12332100Kh", "kino", "ino", "male", "k@ftt.com")
+    # print("5")
+    # q.login("kinann", "12332100Khh")
+    # print("6")
+    # q.add_user("kinannw2", "12332100Kh", "kino", "ino", "male", "k@gff2.com")
+    # print("7")
+    # q.login("kinann222", "12332100Kh")
+
     # This while loop will keep listening to client connections
     while 1:
 
