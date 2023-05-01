@@ -64,18 +64,13 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
         register_message = 'Sign Up,' + Username + ',' + password1 + ',' + FirstName + ',' + LastName + ',' + gender + ',' + Email
         # try except block
         try:
-            client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            # Connect to the server
-            client.connect((HOST, PORT))
-            print("Successfully connected to server")
             client.sendall(register_message.encode())
-
         except ConnectionRefusedError:
             messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
         except Exception as e:
             messagebox.showerror("Error", f"An error occurred: {e}")
 
-        client.close()
+
 def Connect_user(Username, password):
     print(Username + password)
 
@@ -94,7 +89,6 @@ def is_valid_password(password):
 
 
 def on_label_click():
-    print("Label clicked")
     Sign_up_page = tk.Toplevel()
     Sign_up_page.title("Sign up")
     Sign_up_page.geometry("600x600")
@@ -163,6 +157,29 @@ def add_message(message):
     message_box.config(state=tk.DISABLED)
 
 
+def listen_for_messages_from_server(client):
+    while 1:
+        received_list = client.recv(2048).decode('utf-8').split(",")
+        print(received_list[1])
+        if received_list[0] == "Sign Up":
+            if received_list[1] == " True":
+                print("Register message sent successfully")
+                messagebox.showinfo("Success", "User registered successfully!")
+
+            else:
+                messagebox.showerror("Error", received_list[2])
+
+            # message = client.recv(2048).decode('utf-8')
+            # if message != '':
+            #     username = message.split("~")[0]
+            #     content = message.split('~')[1]
+            #
+            #     add_message(f"[{username}] {content}")
+            #
+            # else:
+            #     messagebox.showerror("Error", "Message received from client is empty")
+
+
 def connect():
     # try except block
     try:
@@ -170,20 +187,20 @@ def connect():
         # Connect to the server
         client.connect((HOST, PORT))
         print("Successfully connected to server")
-        add_message("[SERVER] Successfully connected to the server")
+        # add_message("[SERVER] Successfully connected to the server")
     except:
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
 
-    username = username_textbox.get()
-    if username != '':
-        client.sendall(username.encode())
-    else:
-        messagebox.showerror("Invalid username", "Username cannot be empty")
+    # username = username_textbox.get()
+    # if username != '':
+    #     client.sendall(username.encode())
+    # else:
+    #     messagebox.showerror("Invalid username", "Username cannot be empty")
 
     threading.Thread(target=listen_for_messages_from_server, args=(client,)).start()
 
-    username_textbox.config(state=tk.DISABLED)
-    username_button.config(state=tk.DISABLED)
+    # username_textbox.config(state=tk.DISABLED)
+    # username_button.config(state=tk.DISABLED)
 
 
 def send_message():
@@ -199,13 +216,10 @@ LoginPage = tk.Tk()
 LoginPage.geometry("600x600")
 LoginPage.title("Login")
 LoginPage.resizable(False, False)
-
 LoginPage_topFrame = tk.Frame(LoginPage, width=600, height=600, bg=DARK_GREY)
 LoginPage_topFrame.pack(expand=1, fill=BOTH)
-
 Login_label = tk.Label(LoginPage_topFrame, text="Sign in", font=FONT_labels, bg=DARK_GREY, fg=WHITE)
 Login_label.grid(row=0, column=1, padx=20, pady=20, columnspan=1, sticky="nsew")
-
 Username_label = tk.Label(LoginPage_topFrame, text="Username", font=FONT, bg=DARK_GREY, fg=WHITE, justify="left")
 Username_label.grid(row=4, column=0, padx=30, pady=10, sticky="nsew")
 Username_textbox = customtkinter.CTkEntry(master=LoginPage_topFrame, height=3, width=200, corner_radius=8)
@@ -230,6 +244,11 @@ Sign_Up_label = customtkinter.CTkLabel(LoginPage_topFrame, text="Need an account
                                        font=('Arial', 20), bg_color=DARK_GREY, text_color='#0077cc')
 Sign_Up_label.grid(row=8, column=1, padx=5, pady=280, sticky="nsew")
 Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
+Sign_Up_created = 0
+client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+connect()
+
+# Connect to the server
 
 
 # root = tk.Toplevel()
@@ -270,32 +289,9 @@ Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
 # message_box.pack(side=tk.TOP)
 
 
-def listen_for_messages_from_server(client):
-    while 1:
-        received_list = client.recv(2048).decode('utf-8').split(",")
-        if(received_list[0] == "Sign Up"):
-            if (received_list[1] == "True"):
-                print("Register message sent successfully")
-                messagebox.showinfo("Success", "User registered successfully!")
-                Sign_up_page.destroy()
-            else:
-                messagebox.showerror("Error", received_list[2])
-
-        if(received_list[0] == "Sign In"):
-            pass
-            # message = client.recv(2048).decode('utf-8')
-            # if message != '':
-            #     username = message.split("~")[0]
-            #     content = message.split('~')[1]
-            #
-            #     add_message(f"[{username}] {content}")
-            #
-            # else:
-            #     messagebox.showerror("Error", "Message received from client is empty")
-
-
 # main function
 def main():
+
     LoginPage.mainloop()
 
 
