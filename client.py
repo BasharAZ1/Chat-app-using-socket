@@ -188,8 +188,8 @@ def add_message(message):
 
 def Log_out(root):
     LoginPage.deiconify()
-    Username_textbox.delete(0,tk.END)
-    Password_textbox.delete(0,tk.END)
+    Username_textbox.delete(0, tk.END)
+    Password_textbox.delete(0, tk.END)
     root.destroy()
 
 
@@ -216,7 +216,7 @@ def chat_window(username_name):
     username_label.pack(side=tk.LEFT, padx=10)
 
     username_button = tk.Button(top_frame, text="Log_out", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
-                                command=lambda:Log_out(root))
+                                command=lambda: Log_out(root))
     username_button.pack(side=tk.LEFT, padx=15)
 
     message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
@@ -233,9 +233,15 @@ def chat_window(username_name):
 
 
 def listen_for_messages_from_server(client):
-    while 1:
-        received_list = client.recv(2048).decode('utf-8').split(",")
-        print(received_list[1])
+    while client.fileno() != -1:  # Check if the socket is still open
+        try:
+            received_list = client.recv(2048).decode('utf-8').split(",")
+        except ConnectionResetError:  # Handle common socket errors
+            print("Connection reset by peer")
+            break
+        except OSError:
+            print("Socket error")
+            break
         if received_list[0] == "Sign Up":
             if received_list[1] == " True":
                 print("Register message sent successfully")
@@ -330,6 +336,7 @@ Sign_Up_label.grid(row=8, column=1, padx=5, pady=280, sticky="nsew")
 Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connect()
+
 
 # main function
 def main():
