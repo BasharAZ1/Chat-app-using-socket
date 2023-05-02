@@ -1,66 +1,45 @@
-import mysql.connector
 import re
 import hashlib
-import mysql.connector
+import sqlite3
 
-HOST = "localhost"
-USER = "root"
-PASSWORD = "12332100"
-DATABASE = "chatdb"
+DATABASE = "databases/database.db"
+
 
 def create_connection():
+    conn = None
     try:
-        connection = mysql.connector.connect(
-            host=HOST,
-            user=USER,
-            password=PASSWORD,
-            database=DATABASE
-        )
-        return connection
-    except mysql.connector.Error as error:
-        print("Error connecting to MySQL database: {}".format(error))
-
-# def create_users_table():
-#     connection = create_connection()
-#     cursor = connection.cursor()
-#     cursor.execute("""CREATE TABLE IF NOT EXISTS users (
-#                         email VARCHAR(255) PRIMARY KEY,
-#                         username VARCHAR(255) UNIQUE,
-#                         password VARCHAR(255),
-#                         birthdate DATE
-#                      )""")
-#     connection.commit()
-#     connection.close()
+        conn = sqlite3.connect(DATABASE)
+        # print(f'Successful connection to {DATABASE}')
+    except sqlite3.Error as e:
+        print(e)
+    return conn
 
 
 def create_users_table():
-    connection = create_connection()
+    conn = create_connection()
 
-    if connection is None:
-        print("Error connecting to MySQL database")
+    if conn is None:
+        print("Error connecting to SQLite database")
         return
 
-    cursor = connection.cursor()
+    cur = conn.cursor()
 
-    cursor.execute("""CREATE TABLE IF NOT EXISTS usertable (
-                        
-                        username VARCHAR(255) UNIQUE,
-                        password VARCHAR(255),
-                        firstname VARCHAR(255),
-                        lastname VARCHAR(255),
-                        gender VARCHAR(255),
-                        email VARCHAR(255) PRIMARY KEY
-                     )""")
+    cur.execute("""CREATE TABLE IF NOT EXISTS usertable (
+        username TEXT UNIQUE,
+        password TEXT,
+        firstname TEXT,
+        lastname TEXT,
+        gender TEXT,
+        email TEXT PRIMARY KEY
+    )""")
 
-    connection.commit()
-    connection.close()
+    conn.commit()
+    conn.close()
+
 
 def hash_password(password):
-    # Convert the password to bytes
     password_bytes = password.encode('utf-8')
-    # Hash the password using SHA-256
     hashed_bytes = hashlib.sha256(password_bytes).digest()
-    # Convert the hashed bytes to a string
     hashed_password = hashed_bytes.hex()
     return hashed_password
 
@@ -71,69 +50,43 @@ def is_valid_password(password):
         return False
     return True
 
-# def add_user(email, username, password, birthdate):
-#     if not is_valid_password(password):
-#         print("Invalid password. at least 8 long and 1 capital 1 small")
-#         return False
-#
-#     connection = create_connection()
-#     cursor = connection.cursor()
-#
-#     try:
-#         cursor.execute("INSERT INTO users (email, username, password, birthdate) VALUES (%s, %s, %s, %s)",
-#                        (email, username, password, birthdate))
-#         connection.commit()
-#         print("User added successfully.")
-#         return True
-#     except mysql.connector.errors.IntegrityError:
-#         print("User with this email or username already exists.")
-#         return False
-#     finally:
-#         connection.close()
-
-
 def add_user(username, password, first_name, last_name, gender, email):
-    # if not is_valid_password(password):
-    #     print("Invalid password.")
-    #     print()
-    #     return "Sign Up, False, length atleast 8 and one small and one big characters"
-
     hashed_pass = hash_password(password)
 
-    connection = create_connection()
-    cursor = connection.cursor()
+    conn = create_connection()
+    cur = conn.cursor()
 
     try:
-        cursor.execute("INSERT INTO chatdb.usertable (username, password, firstname, lastname, gender, email)"
-                       " VALUES (%s, %s, %s, %s, %s, %s)",
+        cur.execute("INSERT INTO usertable (username, password, firstname, lastname, gender, email)"
+                       " VALUES (?, ?, ?, ?, ?, ?)",
                        (username, hashed_pass, first_name, last_name, gender, email))
 
-        connection.commit()
+        conn.commit()
 
         return "Sign Up, True, User added successfully."
-    except mysql.connector.errors.IntegrityError as e:
-        if "username_UNIQUE" in str(e):
-            print("nahhhh")
+    except sqlite3.IntegrityError as e:
+        if "UNIQUE constraint failed: usertable.username" in str(e):
+            print("User with this username already exists.")
             return "Sign Up, False, User with this username already exists."
-        elif "email_UNIQUE" in str(e):
-            print("kkkkkkk")
+        elif "UNIQUE constraint failed: usertable.email" in str(e):
+            print("User with this email already exists.")
             return "Sign Up, False, User with this email already exists."
         else:
-            print("what the fuck?")
+            print("An error occurred while creating user.")
             return "Sign Up, False, An error occurred while creating user."
     finally:
-        connection.close()
-
+        cur.close()
+        conn.close()
 
 def login(username, password):
-    connection = create_connection()
-    cursor = connection.cursor()
-    query = "SELECT password FROM chatdb.usertable WHERE username = %s"
-    cursor.execute(query, (username,))
-    result = cursor.fetchone()
+    conn = create_connection()
+    cur = conn.cursor()
+    query = "SELECT password FROM usertable WHERE username = ?"
+    cur.execute(query, (username,))
+    result = cur.fetchone()
 
     if result is None:
-
+        print("Invalid username.")
         return False
     hashed_pass = result[0]
     hash_input = hash_password(password)
