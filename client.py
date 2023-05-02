@@ -72,13 +72,13 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
             messagebox.showerror("Error", f"An error occurred: {e}")
 
 
-def Connect_user(Username, password):
+def connect_user(Username, password):
     if not Username:
         messagebox.showerror("Error", "Please enter a username")
         return
-    elif not is_valid_password(password):
-        messagebox.showerror("Error", " At least 8 characters\n At least one capital and one small character")
-        return
+    # elif not is_valid_password(password):
+    #     messagebox.showerror("Error", " At least 8 characters\n At least one capital and one small character")
+    #     return
     Sign_in_message = 'Sign in,' + Username + ',' + password
     try:
         client.sendall(Sign_in_message.encode())
@@ -259,6 +259,9 @@ def listen_for_messages_from_server(client):
 
             else:
                 messagebox.showerror("Error", received_list[2])
+
+        elif received_list[0] == "Chat Messages":
+            pass
             # message = client.recv(2048).decode('utf-8')
             # if message != '':
             #     username = message.split("~")[0]
@@ -304,11 +307,11 @@ def send_message(message_textbox):
 
 LoginPage = tk.Tk()
 LoginPage.geometry("600x600")
-LoginPage.title("Login")
+LoginPage.title("Login Page")
 LoginPage.resizable(False, False)
 LoginPage_topFrame = tk.Frame(LoginPage, width=600, height=600, bg=DARK_GREY)
 LoginPage_topFrame.pack(expand=1, fill=BOTH)
-Login_label = tk.Label(LoginPage_topFrame, text="Sign in", font=FONT_labels, bg=DARK_GREY, fg=WHITE)
+Login_label = tk.Label(LoginPage_topFrame, text="Sign In", font=FONT_labels, bg=DARK_GREY, fg=WHITE)
 Login_label.grid(row=0, column=1, padx=20, pady=20, columnspan=1, sticky="nsew")
 Username_label = tk.Label(LoginPage_topFrame, text="Username", font=FONT, bg=DARK_GREY, fg=WHITE, justify="left")
 Username_label.grid(row=4, column=0, padx=30, pady=10, sticky="nsew")
@@ -322,7 +325,7 @@ Password_textbox.grid(row=5, column=1, padx=0, pady=10, sticky="nsew")
 Login_button = customtkinter.CTkButton(LoginPage_topFrame, text="Login", text_color='white', corner_radius=8,
                                        height=30,
                                        width=150, bg_color=OCEAN_BLUE,
-                                       command=lambda: Connect_user(Username_textbox.get(), Password_textbox.get()))
+                                       command=lambda: connect_user(Username_textbox.get(), Password_textbox.get()))
 Login_button.grid(row=6, column=1, padx=20, pady=20, sticky="nsew")
 Forget_password_label = customtkinter.CTkLabel(LoginPage_topFrame, text="Forgot Password?", height=10, width=10,
                                                anchor='center',

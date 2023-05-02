@@ -4,9 +4,9 @@ import threading
 from databases import queries as q
 
 HOST = '127.0.0.1'
-PORT = 1234  # You can use any port between 0 to 65535
+PORT = 1234  # You can use any port between 0 and 65535
 LISTENER_LIMIT = 5
-active_clients = []  # List of all currently connected users
+active_clients = set()  # List of all currently connected users
 
 
 # Function to listen for upcoming messages from a client
@@ -42,7 +42,7 @@ def client_handler(client):
     while 1:
 
         message = client.recv(2048).decode()
-        print(message)
+        print(f"client handler message: {message}")
         # Split the message into parts using the delimiter ','
         msg_parts = message.split(',')
         if msg_parts[0] == "Sign Up":
@@ -78,7 +78,8 @@ def main():
         # host IP and port
         server.bind((HOST, PORT))
         print(f"Running the server on {HOST} {PORT}")
-    except:
+
+    except socket.error:
         print(f"Unable to bind to host {HOST} and port {PORT}")
 
     # Set server limit
@@ -86,7 +87,7 @@ def main():
     while 1:
         client, address = server.accept()
         print(f"Successfully connected to client {address[0]} {address[1]}")
-
+        active_clients.add(client)
         threading.Thread(target=client_handler, args=(client,)).start()
 
 
