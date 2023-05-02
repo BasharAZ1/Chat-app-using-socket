@@ -4,18 +4,18 @@ import threading
 from databases import queries as q
 
 HOST = '127.0.0.1'
-PORT = 1234 # You can use any port between 0 to 65535
+PORT = 1234  # You can use any port between 0 to 65535
 LISTENER_LIMIT = 5
-active_clients = [] # List of all currently connected users
+active_clients = []  # List of all currently connected users
+
 
 # Function to listen for upcoming messages from a client
 def listen_for_messages(client, username):
-
     while 1:
 
         message = client.recv(2048).decode('utf-8')
         if message != '':
-            
+
             final_msg = username + '~' + message
             send_messages_to_all(final_msg)
 
@@ -25,36 +25,31 @@ def listen_for_messages(client, username):
 
 # Function to send message to a single client
 def send_message_to_client(client, message):
-
     client.sendall(message.encode())
+
 
 # Function to send any new message to all the clients that
 # are currently connected to this server
 def send_messages_to_all(message):
-    
     for user in active_clients:
-
         send_message_to_client(user[1], message)
+
 
 # Function to handle client
 def client_handler(client):
-    
     # Server will listen for client message that will
     # Contain the username
     while 1:
 
-        message = client.recv(2048).decode('utf-8')
-
+        message = client.recv(2048).decode()
+        print(message)
         # Split the message into parts using the delimiter ','
         msg_parts = message.split(',')
         print(msg_parts[0])
-        if(msg_parts[0] == "Sign Up"):
-            check_msg = q.add_user(msg_parts[1],msg_parts[2],msg_parts[3],msg_parts[4],msg_parts[5],msg_parts[6])
-            # check_list = check_msg.split(",")
-            send_message_to_client(client, check_msg)
-
-        elif(msg_parts[0] == "Sign In"):
-            print("Error!!!")
+        if msg_parts[0] == "Sign Up":
+            check_msg = q.add_user(msg_parts[1], msg_parts[2], msg_parts[3], msg_parts[4], msg_parts[5], msg_parts[6])
+            print(check_msg)
+            client.sendall(check_msg.encode())
 
         # if username != '':
         #     active_clients.append((username, client))
@@ -66,10 +61,10 @@ def client_handler(client):
 
     # threading.Thread(target=listen_for_messages, args=(client, username, )).start()
 
+
 # Main function
 
 def main():
-
     # Creating the socket class object
     # AF_INET: we are going to use IPv4 addresses
     # SOCK_STREAM: we are using TCP packets for communication
@@ -86,30 +81,11 @@ def main():
 
     # Set server limit
     server.listen(LISTENER_LIMIT)
-
-    # q.create_users_table()
-    # print("1")
-    # q.add_user("bashbash","12332100Kh","kino", "ino", "male","k@fg.com")
-    # print("2")
-    # q.login("kinann","12332100Kh")
-    # print("3")
-    # q.add_user("ssss", "12332100Kh", "kino", "ino", "male", "k@fg.com")
-    # print("4")
-    # q.add_user("kinann", "12332100Kh", "kino", "ino", "male", "k@ftt.com")
-    # print("5")
-    # q.login("kinann", "12332100Khh")
-    # print("6")
-    # q.add_user("kinannw2", "12332100Kh", "kino", "ino", "male", "k@gff2.com")
-    # print("7")
-    # q.login("kinann222", "12332100Kh")
-
-    # This while loop will keep listening to client connections
     while 1:
-
         client, address = server.accept()
         print(f"Successfully connected to client {address[0]} {address[1]}")
 
-        threading.Thread(target=client_handler, args=(client, )).start()
+        threading.Thread(target=client_handler, args=(client,)).start()
 
 
 if __name__ == '__main__':
