@@ -45,10 +45,12 @@ def client_handler(client):
         print(message)
         # Split the message into parts using the delimiter ','
         msg_parts = message.split(',')
-        print(msg_parts[0])
         if msg_parts[0] == "Sign Up":
             check_msg = q.add_user(msg_parts[1], msg_parts[2], msg_parts[3], msg_parts[4], msg_parts[5], msg_parts[6])
-            print(check_msg)
+            client.sendall(check_msg.encode())
+
+        elif msg_parts[0] == 'Sign in':
+            check_msg = q.login(msg_parts[1], msg_parts[2])
             client.sendall(check_msg.encode())
 
         # if username != '':
