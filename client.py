@@ -1,6 +1,7 @@
 # import required modules
 import socket
 import threading
+import tkinter
 import tkinter as tk
 import re
 from tkinter import scrolledtext, BOTH, ttk
@@ -72,7 +73,19 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
 
 
 def Connect_user(Username, password):
-    print(Username + password)
+    if not Username:
+        messagebox.showerror("Error", "Please enter a username")
+        return
+    elif not is_valid_password(password):
+        messagebox.showerror("Error", " At least 8 characters\n At least one capital and one small character")
+        return
+    Sign_in_message = 'Sign in,' + Username + ',' + password
+    try:
+        client.sendall(Sign_in_message.encode())
+    except ConnectionRefusedError:
+        messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
 
 
 def is_valid_email(email):
@@ -92,7 +105,7 @@ def on_sign_up_close(Sign_up_page):
     Sign_up_page.destroy()
     print("he")
     global is_page_open
-    is_page_open=False
+    is_page_open = False
 
 
 def on_label_click():
@@ -173,18 +186,79 @@ def add_message(message):
     message_box.config(state=tk.DISABLED)
 
 
+def Log_out(root):
+    LoginPage.deiconify()
+    Username_textbox.delete(0, tk.END)
+    Password_textbox.delete(0, tk.END)
+    root.destroy()
+
+
+def chat_window(username_name):
+    root = tk.Toplevel()
+    LoginPage.withdraw()
+    root.geometry("600x600")
+    root.title("Client Messenger")
+    root.resizable(False, False)
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_rowconfigure(1, weight=4)
+    root.grid_rowconfigure(2, weight=1)
+
+    top_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
+    top_frame.grid(row=0, column=0, sticky=tk.NSEW)
+
+    middle_frame = tk.Frame(root, width=600, height=400, bg=MEDIUM_GREY)
+    middle_frame.grid(row=1, column=0, sticky=tk.NSEW)
+
+    bottom_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
+    bottom_frame.grid(row=2, column=0, sticky=tk.NSEW)
+
+    username_label = tk.Label(top_frame, text=username_name, font=FONT, bg=DARK_GREY, fg=WHITE)
+    username_label.pack(side=tk.LEFT, padx=10)
+
+    username_button = tk.Button(top_frame, text="Log_out", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
+                                command=lambda: Log_out(root))
+    username_button.pack(side=tk.LEFT, padx=15)
+
+    message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
+    message_textbox.pack(side=tk.LEFT, padx=10)
+
+    message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
+                               command=send_message(message_textbox))
+    message_button.pack(side=tk.LEFT, padx=10)
+
+    message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=MEDIUM_GREY, fg=WHITE, width=67,
+                                            height=26.5)
+    message_box.config(state=tk.DISABLED)
+    message_box.pack(side=tk.TOP)
+
+
 def listen_for_messages_from_server(client):
-    while 1:
-        received_list = client.recv(2048).decode('utf-8').split(",")
-        print(received_list[1])
+    while client.fileno() != -1:  # Check if the socket is still open
+        try:
+            received_list = client.recv(2048).decode('utf-8').split(",")
+        except ConnectionResetError:  # Handle common socket errors
+            print("Connection reset by peer")
+            break
+        except OSError:
+            print("Socket error")
+            break
         if received_list[0] == "Sign Up":
             if received_list[1] == " True":
                 print("Register message sent successfully")
                 messagebox.showinfo("Success", "User registered successfully!")
+                global response
+                response = received_list
 
             else:
                 messagebox.showerror("Error", received_list[2])
+        elif received_list[0] == "Sign in":
+            if received_list[1] == "True":
+                print("Sign in successful")
+                messagebox.showinfo("Success", "Sign in successful!")
+                chat_window(received_list[2])
 
+            else:
+                messagebox.showerror("Error", received_list[2])
             # message = client.recv(2048).decode('utf-8')
             # if message != '':
             #     username = message.split("~")[0]
@@ -219,7 +293,7 @@ def connect():
     # username_button.config(state=tk.DISABLED)
 
 
-def send_message():
+def send_message(message_textbox):
     message = message_textbox.get()
     if message != '':
         client.sendall(message.encode())
@@ -262,47 +336,6 @@ Sign_Up_label.grid(row=8, column=1, padx=5, pady=280, sticky="nsew")
 Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connect()
-
-
-# Connect to the server
-
-
-# root = tk.Toplevel()
-# root.geometry("600x600")
-# root.title("Client Messenger")
-# root.resizable(False, False)
-#
-# root.grid_rowconfigure(0, weight=1)
-# root.grid_rowconfigure(1, weight=4)
-# root.grid_rowconfigure(2, weight=1)
-#
-# top_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
-# top_frame.grid(row=0, column=0, sticky=tk.NSEW)
-#
-# middle_frame = tk.Frame(root, width=600, height=400, bg=MEDIUM_GREY)
-# middle_frame.grid(row=1, column=0, sticky=tk.NSEW)
-#
-# bottom_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
-# bottom_frame.grid(row=2, column=0, sticky=tk.NSEW)
-#
-# username_label = tk.Label(top_frame, text="Enter username:", font=FONT, bg=DARK_GREY, fg=WHITE)
-# username_label.pack(side=tk.LEFT, padx=10)
-#
-# username_textbox = tk.Entry(top_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=23)
-# username_textbox.pack(side=tk.LEFT)
-#
-# username_button = tk.Button(top_frame, text="Join", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=connect)
-# username_button.pack(side=tk.LEFT, padx=15)
-#
-# message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
-# message_textbox.pack(side=tk.LEFT, padx=10)
-#
-# message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=send_message)
-# message_button.pack(side=tk.LEFT, padx=10)
-#
-# message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=MEDIUM_GREY, fg=WHITE, width=67, height=26.5)
-# message_box.config(state=tk.DISABLED)
-# message_box.pack(side=tk.TOP)
 
 
 # main function

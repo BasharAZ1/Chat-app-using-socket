@@ -86,13 +86,11 @@ def login(username, password):
     result = cur.fetchone()
 
     if result is None:
-        print("Invalid username.")
-        return False
+        return "Sign in,False,invalid username"
     hashed_pass = result[0]
     hash_input = hash_password(password)
     if hash_input == hashed_pass:
-        print("Login successful.")
-        return True
+        return "Sign in,True,"+username
     else:
-        print("Invalid password.")
-        return False
+
+        return "Sign in,False,invalid password"
