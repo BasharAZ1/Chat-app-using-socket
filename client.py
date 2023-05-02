@@ -1,6 +1,7 @@
 # import required modules
 import socket
 import threading
+import tkinter
 import tkinter as tk
 import re
 from tkinter import scrolledtext, BOTH, ttk
@@ -185,12 +186,19 @@ def add_message(message):
     message_box.config(state=tk.DISABLED)
 
 
+def Log_out(root):
+    LoginPage.deiconify()
+    Username_textbox.delete(0,tk.END)
+    Password_textbox.delete(0,tk.END)
+    root.destroy()
+
+
 def chat_window(username_name):
     root = tk.Toplevel()
+    LoginPage.withdraw()
     root.geometry("600x600")
     root.title("Client Messenger")
     root.resizable(False, False)
-
     root.grid_rowconfigure(0, weight=1)
     root.grid_rowconfigure(1, weight=4)
     root.grid_rowconfigure(2, weight=1)
@@ -206,6 +214,10 @@ def chat_window(username_name):
 
     username_label = tk.Label(top_frame, text=username_name, font=FONT, bg=DARK_GREY, fg=WHITE)
     username_label.pack(side=tk.LEFT, padx=10)
+
+    username_button = tk.Button(top_frame, text="Log_out", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
+                                command=lambda:Log_out(root))
+    username_button.pack(side=tk.LEFT, padx=15)
 
     message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
     message_textbox.pack(side=tk.LEFT, padx=10)
@@ -318,13 +330,6 @@ Sign_Up_label.grid(row=8, column=1, padx=5, pady=280, sticky="nsew")
 Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connect()
-
-
-# Connect to the server
-
-
-#
-
 
 # main function
 def main():

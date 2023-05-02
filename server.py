@@ -51,7 +51,6 @@ def client_handler(client):
 
         elif msg_parts[0] == 'Sign in':
             check_msg = q.login(msg_parts[1], msg_parts[2])
-            print(check_msg)
             client.sendall(check_msg.encode())
 
         # if username != '':
