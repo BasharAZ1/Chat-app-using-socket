@@ -8,21 +8,21 @@ PORT = 1234  # You can use any port between 0 and 65535
 LISTENER_LIMIT = 5
 active_clients = []  # List of all currently connected users
 
-
 # Function to listen for upcoming messages from a client
-def listen_for_messages(client, username):
-    while 1:
-        message = client.recv(2048).decode()
-        print(message)
-        print(username)
-        if message != '':
-
-            final_msg = username + '~' + message
-            send_messages_to_all(final_msg)
-            print(final_msg)
-
-        else:
-            print(f"The message send from client {username} is empty")
+# def listen_for_messages(client, username):
+#     while 1:
+#
+#         message = client.recv(2048).decode()
+#         msg_parts = message.split(',')
+#
+#         if message != '':
+#
+#             final_msg = 'sent_msg,' + username + ' ~ ' + msg_parts[1]
+#             send_messages_to_all(final_msg)
+#             print(final_msg)
+#
+#         else:
+#             print(f"The message sent from client {username} is empty")
 
 
 # Function to send message to a single client
@@ -41,7 +41,6 @@ def send_messages_to_all(message):
 def client_handler(client):
     # Server will listen for client message that will
     # Contain the username
-
     while 1:
 
         message = client.recv(2048).decode()
@@ -57,14 +56,24 @@ def client_handler(client):
             client.sendall(check_msg.encode())
 
         elif msg_parts[0] == 'userloggedin':
-            threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],)).start()
+            # messages_thread = threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],))
+            # messages_thread.start()
+            # messages_thread.join()
             active_clients.append((msg_parts[1], client))
             send_messages_to_all('userloggedin,'+msg_parts[1] + ' Has joined the chat')
+            # FLAG=False
 
         elif msg_parts[0] == 'log_out':
             active_clients.remove((msg_parts[1], client))
             send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat')
+            # FLAG = True
 
+        elif msg_parts[0] == 'sent_msg':
+
+            final_msg = 'sent_msg,' + msg_parts[1] + ' ~ ' + msg_parts[1]
+            send_messages_to_all(final_msg)
+            print(final_msg)
+            # send_messages_to_all(msg_parts[1])
         # if username != '':
         #     active_clients.append((username, client))
         #     prompt_message = "SERVER~" + f"{username} added to the chat"
@@ -100,8 +109,8 @@ def main():
     while 1:
         client, address = server.accept()
         print(f"Successfully connected to client {address[0]} {address[1]}")
-        # active_clients.add(client)
-        threading.Thread(target=client_handler, args=(client,)).start()
+        client_thread = threading.Thread(target=client_handler, args=(client,))
+        client_thread.start()
 
 
 if __name__ == '__main__':

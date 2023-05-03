@@ -259,7 +259,8 @@ def listen_for_messages_from_server(client):
             if received_list[1] == "True":
                 print("Sign in successful")
                 messagebox.showinfo("Success", "Sign in successful!")
-                mychat = chat_window(received_list[2])
+                user_logged = received_list[2]
+                mychat = chat_window(user_logged)
 
             else:
                 messagebox.showerror("Error", received_list[2])
@@ -268,7 +269,8 @@ def listen_for_messages_from_server(client):
             add_message(received_list[1], mychat)
         elif received_list[0] == 'log_out':
             add_message(received_list[1], mychat)
-
+        elif received_list[0] == 'sent_msg':
+            add_message(received_list[1], mychat)
             # message = client.recv(2048).decode('utf-8')
             # if message != '':
             #     username = message.split("~")[0]
@@ -306,6 +308,7 @@ def connect():
 def send_message(message_textbox):
     message =message_textbox.get()
     if message != '':
+        message = 'sent_msg,' + message
         client.sendall(message.encode())
         message_textbox.delete(0, len(message))
     else:
