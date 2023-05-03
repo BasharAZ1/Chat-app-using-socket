@@ -12,12 +12,14 @@ active_clients = []  # List of all currently connected users
 # Function to listen for upcoming messages from a client
 def listen_for_messages(client, username):
     while 1:
-
-        message = client.recv(2048).decode('utf-8')
+        message = client.recv(2048).decode()
+        print(message)
+        print(username)
         if message != '':
 
             final_msg = username + '~' + message
             send_messages_to_all(final_msg)
+            print(final_msg)
 
         else:
             print(f"The message send from client {username} is empty")
@@ -39,6 +41,7 @@ def send_messages_to_all(message):
 def client_handler(client):
     # Server will listen for client message that will
     # Contain the username
+
     while 1:
 
         message = client.recv(2048).decode()
@@ -54,8 +57,10 @@ def client_handler(client):
             client.sendall(check_msg.encode())
 
         elif msg_parts[0] == 'userloggedin':
+            threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],)).start()
             active_clients.append((msg_parts[1], client))
             send_messages_to_all('userloggedin,'+msg_parts[1] + ' Has joined the chat')
+
         elif msg_parts[0] == 'log_out':
             active_clients.remove((msg_parts[1], client))
             send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat')
@@ -68,7 +73,7 @@ def client_handler(client):
         # else:
         #     print("Client username is empty")
 
-    # threading.Thread(target=listen_for_messages, args=(client, username, )).start()
+    #
 
 
 # Main function

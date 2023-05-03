@@ -226,7 +226,7 @@ def chat_window(username_name):
     message_textbox.pack(side=tk.LEFT, padx=10)
 
     message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
-                               command=send_message(message_textbox))
+                               command=lambda:send_message(message_textbox))
     message_button.pack(side=tk.LEFT, padx=10)
 
     message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=MEDIUM_GREY, fg=WHITE, width=67,
@@ -304,7 +304,7 @@ def connect():
 
 
 def send_message(message_textbox):
-    message = message_textbox.get()
+    message =message_textbox.get()
     if message != '':
         client.sendall(message.encode())
         message_textbox.delete(0, len(message))
