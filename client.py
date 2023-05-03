@@ -268,6 +268,8 @@ def listen_for_messages_from_server(client):
             add_message(received_list[1], mychat)
         elif received_list[0] == 'log_out':
             add_message(received_list[1], mychat)
+        elif received_list[0] =='message':
+            add_message(received_list[1],mychat)
 
             # message = client.recv(2048).decode('utf-8')
             # if message != '':
@@ -306,6 +308,7 @@ def connect():
 def send_message(message_textbox):
     message =message_textbox.get()
     if message != '':
+        print(message)
         client.sendall(message.encode())
         message_textbox.delete(0, len(message))
     else:

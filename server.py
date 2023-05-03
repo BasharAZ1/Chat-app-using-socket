@@ -12,13 +12,21 @@ active_clients = []  # List of all currently connected users
 # Function to listen for upcoming messages from a client
 def listen_for_messages(client, username):
     while 1:
+
         message = client.recv(2048).decode()
+        msg_parts=message.split(",")
+        if len(msg_parts)==2:
+            if msg_parts[0]=='log_out':
+                active_clients.remove((msg_parts[1], client))
+                send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat')
+                client_handler(client)
+                break
         print(message)
         print(username)
         if message != '':
 
             final_msg = username + '~' + message
-            send_messages_to_all(final_msg)
+            send_messages_to_all('message,' + final_msg)
             print(final_msg)
 
         else:
@@ -46,8 +54,10 @@ def client_handler(client):
 
         message = client.recv(2048).decode()
         print(f"client handler message: {message}")
+
         # Split the message into parts using the delimiter ','
         msg_parts = message.split(',')
+
         if msg_parts[0] == "Sign Up":
             check_msg = q.add_user(msg_parts[1], msg_parts[2], msg_parts[3], msg_parts[4], msg_parts[5], msg_parts[6])
             client.sendall(check_msg.encode())
@@ -57,9 +67,9 @@ def client_handler(client):
             client.sendall(check_msg.encode())
 
         elif msg_parts[0] == 'userloggedin':
-            threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],)).start()
             active_clients.append((msg_parts[1], client))
-            send_messages_to_all('userloggedin,'+msg_parts[1] + ' Has joined the chat')
+            send_messages_to_all('userloggedin,' + msg_parts[1] + ' Has joined the chat')
+            break
 
         elif msg_parts[0] == 'log_out':
             active_clients.remove((msg_parts[1], client))
@@ -73,7 +83,7 @@ def client_handler(client):
         # else:
         #     print("Client username is empty")
 
-    #
+    threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],)).start()
 
 
 # Main function
