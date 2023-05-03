@@ -65,6 +65,7 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
         register_message = 'Sign Up,' + Username + ',' + password1 + ',' + FirstName + ',' + LastName + ',' + gender + ',' + Email
         # try except block
         try:
+            print(register_message)
             client.sendall(register_message.encode())
         except ConnectionRefusedError:
             messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
@@ -76,9 +77,6 @@ def connect_user(Username, password):
     if not Username:
         messagebox.showerror("Error", "Please enter a username")
         return
-    # elif not is_valid_password(password):
-    #     messagebox.showerror("Error", " At least 8 characters\n At least one capital and one small character")
-    #     return
     Sign_in_message = 'Sign in,' + Username + ',' + password
     try:
         client.sendall(Sign_in_message.encode())
@@ -180,13 +178,15 @@ def on_label_click():
         is_page_open = True
 
 
-def add_message(message):
+def add_message(message, message_box):
     message_box.config(state=tk.NORMAL)
     message_box.insert(tk.END, message + '\n')
     message_box.config(state=tk.DISABLED)
 
 
-def Log_out(root):
+def Log_out(root, username_name):
+    logout_succeful_message = 'log_out,' + username_name
+    client.sendall(logout_succeful_message.encode())
     LoginPage.deiconify()
     Username_textbox.delete(0, tk.END)
     Password_textbox.delete(0, tk.END)
@@ -194,14 +194,17 @@ def Log_out(root):
 
 
 def chat_window(username_name):
-    root = tk.Toplevel()
     LoginPage.withdraw()
+    root = tk.Toplevel()
     root.geometry("600x600")
     root.title("Client Messenger")
     root.resizable(False, False)
     root.grid_rowconfigure(0, weight=1)
     root.grid_rowconfigure(1, weight=4)
     root.grid_rowconfigure(2, weight=1)
+    login_succeful_message = "userloggedin," + username_name
+
+    client.sendall(login_succeful_message.encode())
 
     top_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
     top_frame.grid(row=0, column=0, sticky=tk.NSEW)
@@ -216,7 +219,7 @@ def chat_window(username_name):
     username_label.pack(side=tk.LEFT, padx=10)
 
     username_button = tk.Button(top_frame, text="Log_out", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
-                                command=lambda: Log_out(root))
+                                command=lambda: Log_out(root, username_name))
     username_button.pack(side=tk.LEFT, padx=15)
 
     message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
@@ -230,6 +233,7 @@ def chat_window(username_name):
                                             height=26.5)
     message_box.config(state=tk.DISABLED)
     message_box.pack(side=tk.TOP)
+    return message_box
 
 
 def listen_for_messages_from_server(client):
@@ -255,13 +259,16 @@ def listen_for_messages_from_server(client):
             if received_list[1] == "True":
                 print("Sign in successful")
                 messagebox.showinfo("Success", "Sign in successful!")
-                chat_window(received_list[2])
+                mychat = chat_window(received_list[2])
 
             else:
                 messagebox.showerror("Error", received_list[2])
 
-        elif received_list[0] == "Chat Messages":
-            pass
+        elif received_list[0] == "userloggedin":
+            add_message(received_list[1], mychat)
+        elif received_list[0] == 'log_out':
+            add_message(received_list[1], mychat)
+
             # message = client.recv(2048).decode('utf-8')
             # if message != '':
             #     username = message.split("~")[0]

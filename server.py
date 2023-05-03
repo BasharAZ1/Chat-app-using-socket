@@ -6,7 +6,7 @@ from databases import queries as q
 HOST = '127.0.0.1'
 PORT = 1234  # You can use any port between 0 and 65535
 LISTENER_LIMIT = 5
-active_clients = set()  # List of all currently connected users
+active_clients = []  # List of all currently connected users
 
 
 # Function to listen for upcoming messages from a client
@@ -53,6 +53,13 @@ def client_handler(client):
             check_msg = q.login(msg_parts[1], msg_parts[2])
             client.sendall(check_msg.encode())
 
+        elif msg_parts[0] == 'userloggedin':
+            active_clients.append((msg_parts[1], client))
+            send_messages_to_all('userloggedin,'+msg_parts[1] + ' Has joined the chat')
+        elif msg_parts[0] == 'log_out':
+            active_clients.remove((msg_parts[1], client))
+            send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat')
+
         # if username != '':
         #     active_clients.append((username, client))
         #     prompt_message = "SERVER~" + f"{username} added to the chat"
@@ -71,6 +78,7 @@ def main():
     # AF_INET: we are going to use IPv4 addresses
     # SOCK_STREAM: we are using TCP packets for communication
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    q.create_users_table()
 
     # Creating a try catch block
     try:
@@ -87,7 +95,7 @@ def main():
     while 1:
         client, address = server.accept()
         print(f"Successfully connected to client {address[0]} {address[1]}")
-        active_clients.add(client)
+        # active_clients.add(client)
         threading.Thread(target=client_handler, args=(client,)).start()
 
 
