@@ -7,7 +7,7 @@ HOST = '127.0.0.1'
 PORT = 1234  # You can use any port between 0 and 65535
 LISTENER_LIMIT = 5
 active_clients = []  # List of all currently connected users
-
+active_clients_str=''
 
 # Function to listen for upcoming messages from a client
 def listen_for_messages(client, username):
@@ -68,7 +68,10 @@ def client_handler(client):
 
         elif msg_parts[0] == 'userloggedin':
             active_clients.append((msg_parts[1], client))
-            send_messages_to_all('userloggedin,' + msg_parts[1] + ' Has joined the chat')
+            global active_clients_str
+            active_clients_str = active_clients_str+msg_parts[1] + '###'
+            print(active_clients_str)
+            send_messages_to_all('userloggedin,' + msg_parts[1] + ' Has joined the chat,'+active_clients_str)
             break
 
         elif msg_parts[0] == 'log_out':

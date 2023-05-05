@@ -22,6 +22,7 @@ FONT = ("Helvetica", 14)
 BUTTON_FONT = ("Helvetica", 15)
 SMALL_FONT = ("Helvetica", 13)
 is_page_open = False
+online_users=''
 # Creating a socket object
 # AF_INET: we are going to use IPv4 addresses
 # SOCK_STREAM: we are using TCP packets for communication
@@ -221,19 +222,56 @@ def chat_window(username_name):
     username_button = tk.Button(top_frame, text="Log_out", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
                                 command=lambda: Log_out(root, username_name))
     username_button.pack(side=tk.LEFT, padx=15)
+    active_user_button = tk.Button(top_frame, text="Active users", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
+                                   command=lambda:show_active_user(online_users))
+    active_user_button.pack(side=tk.LEFT, padx=15)
 
     message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
     message_textbox.pack(side=tk.LEFT, padx=10)
 
     message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
-                               command=lambda:send_message(message_textbox))
+                               command=lambda: send_message(message_textbox))
     message_button.pack(side=tk.LEFT, padx=10)
 
     message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=MEDIUM_GREY, fg=WHITE, width=67,
                                             height=26.5)
     message_box.config(state=tk.DISABLED)
     message_box.pack(side=tk.TOP)
-    return message_box
+    return message_box, top_frame
+
+
+def show_active_user(user_names_str):
+    window = tk.Toplevel()
+
+    # Set the window title
+    window.title("Active Users")
+
+    # Create a label widget to display the title
+    title_label = tk.Label(window, text="Active Users", font=("Helvetica", 16))
+    title_label.pack(pady=10)
+
+    # Create a listbox widget to display the active users
+    user_listbox = tk.Listbox(window, width=30, height=10, font=("Helvetica", 12))
+
+    # Split the user_names_str into a list of user names
+
+    # Insert each user name into the listbox
+    for name in user_names_str:
+        user_listbox.insert(tk.END, name)
+
+    # Pack the listbox into the window
+    user_listbox.pack(padx=10, pady=10)
+
+    # Create a button widget to close the window
+    close_button = tk.Button(window, text="Close", font=("Helvetica", 12), command=window.destroy)
+    close_button.pack(pady=10)
+
+
+def add_online_users(user_names_str, frame):
+    user_names = user_names_str.split('###')
+    global online_users
+    online_users=user_names
+
 
 
 def listen_for_messages_from_server(client):
@@ -259,17 +297,18 @@ def listen_for_messages_from_server(client):
             if received_list[1] == "True":
                 print("Sign in successful")
                 messagebox.showinfo("Success", "Sign in successful!")
-                mychat = chat_window(received_list[2])
+                mychat, topframe = chat_window(received_list[2])
 
             else:
                 messagebox.showerror("Error", received_list[2])
 
         elif received_list[0] == "userloggedin":
             add_message(received_list[1], mychat)
+            add_online_users(received_list[2], mychat)
         elif received_list[0] == 'log_out':
             add_message(received_list[1], mychat)
-        elif received_list[0] =='message':
-            add_message(received_list[1],mychat)
+        elif received_list[0] == 'message':
+            add_message(received_list[1], topframe)
 
             # message = client.recv(2048).decode('utf-8')
             # if message != '':
@@ -306,7 +345,7 @@ def connect():
 
 
 def send_message(message_textbox):
-    message =message_textbox.get()
+    message = message_textbox.get()
     if message != '':
         print(message)
         client.sendall(message.encode())
