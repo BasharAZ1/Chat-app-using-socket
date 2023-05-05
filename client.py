@@ -22,7 +22,7 @@ FONT = ("Helvetica", 14)
 BUTTON_FONT = ("Helvetica", 15)
 SMALL_FONT = ("Helvetica", 13)
 is_page_open = False
-online_users=''
+online_users = ''
 # Creating a socket object
 # AF_INET: we are going to use IPv4 addresses
 # SOCK_STREAM: we are using TCP packets for communication
@@ -180,6 +180,7 @@ def on_label_click():
 
 
 def add_message(message, message_box):
+    print(message)
     message_box.config(state=tk.NORMAL)
     message_box.insert(tk.END, message + '\n')
     message_box.config(state=tk.DISABLED)
@@ -223,7 +224,7 @@ def chat_window(username_name):
                                 command=lambda: Log_out(root, username_name))
     username_button.pack(side=tk.LEFT, padx=15)
     active_user_button = tk.Button(top_frame, text="Active users", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
-                                   command=lambda:show_active_user(online_users))
+                                   command=lambda: show_active_user(online_users))
     active_user_button.pack(side=tk.LEFT, padx=15)
 
     message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
@@ -237,7 +238,7 @@ def chat_window(username_name):
                                             height=26.5)
     message_box.config(state=tk.DISABLED)
     message_box.pack(side=tk.TOP)
-    return message_box, top_frame
+    return message_box
 
 
 def show_active_user(user_names_str):
@@ -253,8 +254,6 @@ def show_active_user(user_names_str):
     # Create a listbox widget to display the active users
     user_listbox = tk.Listbox(window, width=30, height=10, font=("Helvetica", 12))
 
-    # Split the user_names_str into a list of user names
-
     # Insert each user name into the listbox
     for name in user_names_str:
         user_listbox.insert(tk.END, name)
@@ -267,11 +266,10 @@ def show_active_user(user_names_str):
     close_button.pack(pady=10)
 
 
-def add_online_users(user_names_str, frame):
+def add_online_users(user_names_str):
     user_names = user_names_str.split('###')
     global online_users
-    online_users=user_names
-
+    online_users = user_names
 
 
 def listen_for_messages_from_server(client):
@@ -297,28 +295,20 @@ def listen_for_messages_from_server(client):
             if received_list[1] == "True":
                 print("Sign in successful")
                 messagebox.showinfo("Success", "Sign in successful!")
-                mychat, topframe = chat_window(received_list[2])
+                mychat = chat_window(received_list[2])
 
             else:
                 messagebox.showerror("Error", received_list[2])
 
         elif received_list[0] == "userloggedin":
             add_message(received_list[1], mychat)
-            add_online_users(received_list[2], mychat)
+            add_online_users(received_list[2])
         elif received_list[0] == 'log_out':
             add_message(received_list[1], mychat)
+            add_online_users(received_list[2])
         elif received_list[0] == 'message':
-            add_message(received_list[1], topframe)
+            add_message(received_list[1], mychat)
 
-            # message = client.recv(2048).decode('utf-8')
-            # if message != '':
-            #     username = message.split("~")[0]
-            #     content = message.split('~')[1]
-            #
-            #     add_message(f"[{username}] {content}")
-            #
-            # else:
-            #     messagebox.showerror("Error", "Message received from client is empty")
 
 
 def connect():
@@ -332,16 +322,11 @@ def connect():
     except:
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
 
-    # username = username_textbox.get()
-    # if username != '':
-    #     client.sendall(username.encode())
-    # else:
-    #     messagebox.showerror("Invalid username", "Username cannot be empty")
+
 
     threading.Thread(target=listen_for_messages_from_server, args=(client,)).start()
 
-    # username_textbox.config(state=tk.DISABLED)
-    # username_button.config(state=tk.DISABLED)
+
 
 
 def send_message(message_textbox):

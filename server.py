@@ -7,22 +7,23 @@ HOST = '127.0.0.1'
 PORT = 1234  # You can use any port between 0 and 65535
 LISTENER_LIMIT = 5
 active_clients = []  # List of all currently connected users
-active_clients_str=''
+active_clients_str = ''
+
 
 # Function to listen for upcoming messages from a client
 def listen_for_messages(client, username):
     while 1:
 
         message = client.recv(2048).decode()
-        msg_parts=message.split(",")
-        if len(msg_parts)==2:
-            if msg_parts[0]=='log_out':
+        msg_parts = message.split(",")
+        if len(msg_parts) == 2:
+            if msg_parts[0] == 'log_out':
                 active_clients.remove((msg_parts[1], client))
-                send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat')
+                global active_clients_str
+                active_clients_str = active_clients_str.replace(msg_parts[1] + '###', '')
+                send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat,' + active_clients_str)
                 client_handler(client)
                 break
-        print(message)
-        print(username)
         if message != '':
 
             final_msg = username + '~' + message
@@ -69,22 +70,15 @@ def client_handler(client):
         elif msg_parts[0] == 'userloggedin':
             active_clients.append((msg_parts[1], client))
             global active_clients_str
-            active_clients_str = active_clients_str+msg_parts[1] + '###'
+            active_clients_str = active_clients_str + msg_parts[1] + '###'
             print(active_clients_str)
-            send_messages_to_all('userloggedin,' + msg_parts[1] + ' Has joined the chat,'+active_clients_str)
+            send_messages_to_all('userloggedin,' + msg_parts[1] + ' Has joined the chat,' + active_clients_str)
             break
 
         elif msg_parts[0] == 'log_out':
             active_clients.remove((msg_parts[1], client))
-            send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat')
-
-        # if username != '':
-        #     active_clients.append((username, client))
-        #     prompt_message = "SERVER~" + f"{username} added to the chat"
-        #     send_messages_to_all(prompt_message)
-        #     break
-        # else:
-        #     print("Client username is empty")
+            active_clients_str = active_clients_str.replace(msg_parts[1] + '###', '')
+            send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat,' + active_clients_str)
 
     threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],)).start()
 
