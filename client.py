@@ -1,6 +1,7 @@
 # import required modules
 import socket
 import threading
+import tkinter
 import tkinter as tk
 import re
 from tkinter import scrolledtext, BOTH, ttk
@@ -12,15 +13,20 @@ HOST = '127.0.0.1'
 PORT = 1234
 Error_message_flag = False
 FONT_labels = ("Helvetica", 30)
-DARK_GREY = '#121212'
+# DARK_GREY = '#121212'
 DARK_GREY_Sign_UP = '#A9A9A9'
-MEDIUM_GREY = '#1F1B24'
-OCEAN_BLUE = '#464EB8'
+# MEDIUM_GREY = '#1F1B24'
+# OCEAN_BLUE = '#464EB8'
+OCEAN_BLUE = "#0077b6"
+DARK_GREY = "#2c2c2c"
+MEDIUM_GREY = "#4f4f4f"
+LIGHT_GREY = "#d3d3d3"
 WHITE = "white"
 FONT = ("Helvetica", 14)
 BUTTON_FONT = ("Helvetica", 15)
 SMALL_FONT = ("Helvetica", 13)
 is_page_open = False
+online_users = ''
 # Creating a socket object
 # AF_INET: we are going to use IPv4 addresses
 # SOCK_STREAM: we are using TCP packets for communication
@@ -64,6 +70,7 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
         register_message = 'Sign Up,' + Username + ',' + password1 + ',' + FirstName + ',' + LastName + ',' + gender + ',' + Email
         # try except block
         try:
+            print(register_message)
             client.sendall(register_message.encode())
         except ConnectionRefusedError:
             messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
@@ -71,8 +78,17 @@ def register_user(Sign_up_page, window, Username, password1, password2, FirstNam
             messagebox.showerror("Error", f"An error occurred: {e}")
 
 
-def Connect_user(Username, password):
-    print(Username + password)
+def connect_user(Username, password):
+    if not Username:
+        messagebox.showerror("Error", "Please enter a username")
+        return
+    Sign_in_message = 'Sign in,' + Username + ',' + password
+    try:
+        client.sendall(Sign_in_message.encode())
+    except ConnectionRefusedError:
+        messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
+    except Exception as e:
+        messagebox.showerror("Error", f"An error occurred: {e}")
 
 
 def is_valid_email(email):
@@ -92,7 +108,7 @@ def on_sign_up_close(Sign_up_page):
     Sign_up_page.destroy()
     print("he")
     global is_page_open
-    is_page_open=False
+    is_page_open = False
 
 
 def on_label_click():
@@ -167,33 +183,136 @@ def on_label_click():
         is_page_open = True
 
 
-def add_message(message):
+def add_message(message, message_box):
+    print(message)
     message_box.config(state=tk.NORMAL)
     message_box.insert(tk.END, message + '\n')
     message_box.config(state=tk.DISABLED)
 
 
+def Log_out(root, username_name):
+    logout_succeful_message = 'log_out,' + username_name
+    client.sendall(logout_succeful_message.encode())
+    LoginPage.deiconify()
+    Username_textbox.delete(0, tk.END)
+    Password_textbox.delete(0, tk.END)
+    root.destroy()
+
+
+def chat_window(username_name):
+    LoginPage.withdraw()
+    root = tk.Toplevel()
+    root.geometry("600x600")
+    root.title("Client Messenger")
+    root.resizable(False, False)
+    root.grid_rowconfigure(0, weight=1)
+    root.grid_rowconfigure(1, weight=4)
+    root.grid_rowconfigure(2, weight=1)
+    login_succeful_message = "userloggedin," + username_name
+
+    client.sendall(login_succeful_message.encode())
+
+    top_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
+    top_frame.grid(row=0, column=0, sticky=tk.NSEW, padx=10, pady=10)
+
+    middle_frame = tk.Frame(root, width=600, height=400, bg=MEDIUM_GREY)
+    middle_frame.grid(row=1, column=0, sticky=tk.NSEW, padx=10, pady=10)
+
+    bottom_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
+    bottom_frame.grid(row=2, column=0, sticky=tk.NSEW, padx=10, pady=10)
+
+    username_label = tk.Label(top_frame, text=username_name, font=FONT, bg=DARK_GREY, fg=WHITE)
+    username_label.pack(side=tk.LEFT, padx=10)
+
+    username_button = tk.Button(top_frame, text="Logout", font=BUTTON_FONT, bg=MEDIUM_GREY, fg=WHITE,
+                                command=lambda: Log_out(root, username_name))
+    username_button.pack(side=tk.LEFT, padx=15, pady=2)
+    active_user_button = tk.Button(top_frame, text="Active Users", font=BUTTON_FONT, bg=MEDIUM_GREY, fg=WHITE,
+                                   command=lambda: show_active_user(online_users))
+    active_user_button.pack(side=tk.LEFT, padx=15, pady=2)
+
+    message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
+    message_textbox.pack(side=tk.LEFT, padx=10, pady=5)
+
+    message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=MEDIUM_GREY, fg=WHITE,
+                               command=lambda: send_message(message_textbox))
+    message_button.pack(side=tk.LEFT, padx=10, pady=5)
+
+    message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=WHITE, fg=MEDIUM_GREY, width=67,
+                                            height=26.5)
+    message_box.config(state=tk.DISABLED)
+    message_box.pack(side=tk.TOP)
+    return message_box
+
+
+def show_active_user(user_names_str):
+    window = tk.Toplevel()
+
+    # Set the window title
+    window.title("Active Users")
+
+    # Create a label widget to display the title
+    title_label = tk.Label(window, text="Active Users", font=("Helvetica", 16))
+    title_label.pack(pady=10)
+
+    # Create a listbox widget to display the active users
+    user_listbox = tk.Listbox(window, width=30, height=10, font=("Helvetica", 12))
+
+    # Insert each user name into the listbox
+    for name in user_names_str:
+        user_listbox.insert(tk.END, name)
+
+    # Pack the listbox into the window
+    user_listbox.pack(padx=10, pady=10)
+
+    # Create a button widget to close the window
+    close_button = tk.Button(window, text="Close", font=("Helvetica", 12), command=window.destroy)
+    close_button.pack(pady=10)
+
+
+def add_online_users(user_names_str):
+    user_names = user_names_str.split('###')
+    global online_users
+    online_users = user_names
+
+
 def listen_for_messages_from_server(client):
-    while 1:
-        received_list = client.recv(2048).decode('utf-8').split(",")
-        print(received_list[1])
+    while client.fileno() != -1:  # Check if the socket is still open
+        try:
+            received_list = client.recv(2048).decode('utf-8').split(",")
+        except ConnectionResetError:  # Handle common socket errors
+            print("Connection reset by peer")
+            break
+        except OSError:
+            print("Socket error")
+            break
         if received_list[0] == "Sign Up":
             if received_list[1] == " True":
                 print("Register message sent successfully")
                 messagebox.showinfo("Success", "User registered successfully!")
+                global response
+                response = received_list
+
+            else:
+                messagebox.showerror("Error", received_list[2])
+        elif received_list[0] == "Sign in":
+            if received_list[1] == "True":
+                print("Sign in successful")
+                messagebox.showinfo("Success", "Sign in successful!")
+                mychat = chat_window(received_list[2])
 
             else:
                 messagebox.showerror("Error", received_list[2])
 
-            # message = client.recv(2048).decode('utf-8')
-            # if message != '':
-            #     username = message.split("~")[0]
-            #     content = message.split('~')[1]
-            #
-            #     add_message(f"[{username}] {content}")
-            #
-            # else:
-            #     messagebox.showerror("Error", "Message received from client is empty")
+        elif received_list[0] == "userloggedin":
+            add_message(received_list[1], mychat)
+            add_online_users(received_list[2])
+        elif received_list[0] == 'log_out':
+            add_message(received_list[1], mychat)
+            add_online_users(received_list[2])
+        elif received_list[0] == 'message':
+            add_message(received_list[1], mychat)
+
 
 
 def connect():
@@ -207,21 +326,17 @@ def connect():
     except:
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
 
-    # username = username_textbox.get()
-    # if username != '':
-    #     client.sendall(username.encode())
-    # else:
-    #     messagebox.showerror("Invalid username", "Username cannot be empty")
+
 
     threading.Thread(target=listen_for_messages_from_server, args=(client,)).start()
 
-    # username_textbox.config(state=tk.DISABLED)
-    # username_button.config(state=tk.DISABLED)
 
 
-def send_message():
+
+def send_message(message_textbox):
     message = message_textbox.get()
     if message != '':
+        print(message)
         client.sendall(message.encode())
         message_textbox.delete(0, len(message))
     else:
@@ -230,11 +345,11 @@ def send_message():
 
 LoginPage = tk.Tk()
 LoginPage.geometry("600x600")
-LoginPage.title("Login")
+LoginPage.title("Login Page")
 LoginPage.resizable(False, False)
 LoginPage_topFrame = tk.Frame(LoginPage, width=600, height=600, bg=DARK_GREY)
 LoginPage_topFrame.pack(expand=1, fill=BOTH)
-Login_label = tk.Label(LoginPage_topFrame, text="Sign in", font=FONT_labels, bg=DARK_GREY, fg=WHITE)
+Login_label = tk.Label(LoginPage_topFrame, text="Sign In", font=FONT_labels, bg=DARK_GREY, fg=WHITE)
 Login_label.grid(row=0, column=1, padx=20, pady=20, columnspan=1, sticky="nsew")
 Username_label = tk.Label(LoginPage_topFrame, text="Username", font=FONT, bg=DARK_GREY, fg=WHITE, justify="left")
 Username_label.grid(row=4, column=0, padx=30, pady=10, sticky="nsew")
@@ -248,7 +363,7 @@ Password_textbox.grid(row=5, column=1, padx=0, pady=10, sticky="nsew")
 Login_button = customtkinter.CTkButton(LoginPage_topFrame, text="Login", text_color='white', corner_radius=8,
                                        height=30,
                                        width=150, bg_color=OCEAN_BLUE,
-                                       command=lambda: Connect_user(Username_textbox.get(), Password_textbox.get()))
+                                       command=lambda: connect_user(Username_textbox.get(), Password_textbox.get()))
 Login_button.grid(row=6, column=1, padx=20, pady=20, sticky="nsew")
 Forget_password_label = customtkinter.CTkLabel(LoginPage_topFrame, text="Forgot Password?", height=10, width=10,
                                                anchor='center',
@@ -262,47 +377,6 @@ Sign_Up_label.grid(row=8, column=1, padx=5, pady=280, sticky="nsew")
 Sign_Up_label.bind("<Button-1>", lambda event: on_label_click())
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 connect()
-
-
-# Connect to the server
-
-
-# root = tk.Toplevel()
-# root.geometry("600x600")
-# root.title("Client Messenger")
-# root.resizable(False, False)
-#
-# root.grid_rowconfigure(0, weight=1)
-# root.grid_rowconfigure(1, weight=4)
-# root.grid_rowconfigure(2, weight=1)
-#
-# top_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
-# top_frame.grid(row=0, column=0, sticky=tk.NSEW)
-#
-# middle_frame = tk.Frame(root, width=600, height=400, bg=MEDIUM_GREY)
-# middle_frame.grid(row=1, column=0, sticky=tk.NSEW)
-#
-# bottom_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
-# bottom_frame.grid(row=2, column=0, sticky=tk.NSEW)
-#
-# username_label = tk.Label(top_frame, text="Enter username:", font=FONT, bg=DARK_GREY, fg=WHITE)
-# username_label.pack(side=tk.LEFT, padx=10)
-#
-# username_textbox = tk.Entry(top_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=23)
-# username_textbox.pack(side=tk.LEFT)
-#
-# username_button = tk.Button(top_frame, text="Join", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=connect)
-# username_button.pack(side=tk.LEFT, padx=15)
-#
-# message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
-# message_textbox.pack(side=tk.LEFT, padx=10)
-#
-# message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE, command=send_message)
-# message_button.pack(side=tk.LEFT, padx=10)
-#
-# message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=MEDIUM_GREY, fg=WHITE, width=67, height=26.5)
-# message_box.config(state=tk.DISABLED)
-# message_box.pack(side=tk.TOP)
 
 
 # main function

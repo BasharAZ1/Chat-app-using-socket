@@ -4,20 +4,31 @@ import threading
 from databases import queries as q
 
 HOST = '127.0.0.1'
-PORT = 1234  # You can use any port between 0 to 65535
+PORT = 1234  # You can use any port between 0 and 65535
 LISTENER_LIMIT = 5
 active_clients = []  # List of all currently connected users
+active_clients_str = ''
 
 
 # Function to listen for upcoming messages from a client
 def listen_for_messages(client, username):
     while 1:
 
-        message = client.recv(2048).decode('utf-8')
+        message = client.recv(2048).decode()
+        msg_parts = message.split(",")
+        if len(msg_parts) == 2:
+            if msg_parts[0] == 'log_out':
+                active_clients.remove((msg_parts[1], client))
+                global active_clients_str
+                active_clients_str = active_clients_str.replace(msg_parts[1] + '###', '')
+                send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat,' + active_clients_str)
+                client_handler(client)
+                break
         if message != '':
 
-            final_msg = username + '~' + message
-            send_messages_to_all(final_msg)
+            final_msg = username + ' ~ ' + message
+            send_messages_to_all('message,' + final_msg)
+            print(final_msg)
 
         else:
             print(f"The message send from client {username} is empty")
@@ -39,27 +50,37 @@ def send_messages_to_all(message):
 def client_handler(client):
     # Server will listen for client message that will
     # Contain the username
+
     while 1:
 
         message = client.recv(2048).decode()
-        print(message)
+        print(f"client handler message: {message}")
+
         # Split the message into parts using the delimiter ','
         msg_parts = message.split(',')
-        print(msg_parts[0])
+
         if msg_parts[0] == "Sign Up":
             check_msg = q.add_user(msg_parts[1], msg_parts[2], msg_parts[3], msg_parts[4], msg_parts[5], msg_parts[6])
-            print(check_msg)
             client.sendall(check_msg.encode())
 
-        # if username != '':
-        #     active_clients.append((username, client))
-        #     prompt_message = "SERVER~" + f"{username} added to the chat"
-        #     send_messages_to_all(prompt_message)
-        #     break
-        # else:
-        #     print("Client username is empty")
+        elif msg_parts[0] == 'Sign in':
+            check_msg = q.login(msg_parts[1], msg_parts[2])
+            client.sendall(check_msg.encode())
 
-    # threading.Thread(target=listen_for_messages, args=(client, username, )).start()
+        elif msg_parts[0] == 'userloggedin':
+            active_clients.append((msg_parts[1], client))
+            global active_clients_str
+            active_clients_str = active_clients_str + msg_parts[1] + '###'
+            print(active_clients_str)
+            send_messages_to_all('userloggedin,' + msg_parts[1] + ' Has joined the chat,' + active_clients_str)
+            break
+
+        elif msg_parts[0] == 'log_out':
+            active_clients.remove((msg_parts[1], client))
+            active_clients_str = active_clients_str.replace(msg_parts[1] + '###', '')
+            send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat,' + active_clients_str)
+
+    threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],)).start()
 
 
 # Main function
@@ -69,6 +90,7 @@ def main():
     # AF_INET: we are going to use IPv4 addresses
     # SOCK_STREAM: we are using TCP packets for communication
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    q.create_users_table()
 
     # Creating a try catch block
     try:
@@ -76,7 +98,8 @@ def main():
         # host IP and port
         server.bind((HOST, PORT))
         print(f"Running the server on {HOST} {PORT}")
-    except:
+
+    except socket.error:
         print(f"Unable to bind to host {HOST} and port {PORT}")
 
     # Set server limit
@@ -84,7 +107,7 @@ def main():
     while 1:
         client, address = server.accept()
         print(f"Successfully connected to client {address[0]} {address[1]}")
-
+        # active_clients.add(client)
         threading.Thread(target=client_handler, args=(client,)).start()
 
 
