@@ -29,6 +29,7 @@ def create_users_table():
         firstname TEXT,
         lastname TEXT,
         gender TEXT,
+        status INTEGER,
         email TEXT PRIMARY KEY
     )"""
     cur.execute(query)
@@ -55,13 +56,13 @@ def is_valid_password(password):
 
 def add_user(username, password, first_name, last_name, gender, email):
     hashed_pass = hash_password(password)
-    params = (username, hashed_pass, first_name, last_name, gender, email)
+    params = (username, hashed_pass, first_name, last_name, gender, 0, email)
     conn = create_connection()
     cur = conn.cursor()
 
     try:
-        query = """INSERT INTO user_table (username, password, firstname, lastname, gender, email)
-                VALUES (?, ?, ?, ?, ?, ?)"""
+        query = """INSERT INTO user_table (username, password, firstname, lastname, gender, status, email)
+                VALUES (?, ?, ?, ?, ?, ?, ?)"""
         cur.execute(query, params)
 
         conn.commit()
@@ -144,3 +145,25 @@ def change_email_address(username, new_email):
     cur.close()
     conn.close()
     return True
+
+def change_status_login(username):
+
+    conn = create_connection()
+    if conn is None:
+        return False
+    cur = conn.cursor()
+    status_query = 'SELECT status FROM user_table WHERE username = ?'
+    cur.execute(status_query, (username,))
+    user_status = cur.fetchone()[0]
+    if user_status == 0:
+        query = "UPDATE user_table SET status = 1 WHERE username = ?"
+        cur.execute(query, (username,))
+    else:
+        query = "UPDATE user_table SET status = 0 WHERE username = ?"
+        cur.execute(query, (username,))
+    print(f"stattt {user_status}")
+    conn.commit()
+    cur.close()
+    conn.close()
+    return True
+

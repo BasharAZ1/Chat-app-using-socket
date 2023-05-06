@@ -91,7 +91,10 @@ def main():
     # SOCK_STREAM: we are using TCP packets for communication
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     q.create_users_table()
-
+    q.add_user("ayal123","Aa123456","ayal","abo", "male", "ayal123@gmail.com")
+    q.add_user("kinan123", "Aa123456", "kinan", "hino", "male", "kinan@gmail.com")
+    q.add_user("BasharAli159", "Aa123456", "bash", "ali", "female", "basha@gmail.com")
+    print(q.change_status_login("ayal123"))
     # Creating a try catch block
     try:
         # Provide the server with an address in the form of
