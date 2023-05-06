@@ -13,10 +13,14 @@ HOST = '127.0.0.1'
 PORT = 1234
 Error_message_flag = False
 FONT_labels = ("Helvetica", 30)
-DARK_GREY = '#121212'
+# DARK_GREY = '#121212'
 DARK_GREY_Sign_UP = '#A9A9A9'
-MEDIUM_GREY = '#1F1B24'
-OCEAN_BLUE = '#464EB8'
+# MEDIUM_GREY = '#1F1B24'
+# OCEAN_BLUE = '#464EB8'
+OCEAN_BLUE = "#0077b6"
+DARK_GREY = "#2c2c2c"
+MEDIUM_GREY = "#4f4f4f"
+LIGHT_GREY = "#d3d3d3"
 WHITE = "white"
 FONT = ("Helvetica", 14)
 BUTTON_FONT = ("Helvetica", 15)
@@ -209,32 +213,32 @@ def chat_window(username_name):
     client.sendall(login_succeful_message.encode())
 
     top_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
-    top_frame.grid(row=0, column=0, sticky=tk.NSEW)
+    top_frame.grid(row=0, column=0, sticky=tk.NSEW, padx=10, pady=10)
 
     middle_frame = tk.Frame(root, width=600, height=400, bg=MEDIUM_GREY)
-    middle_frame.grid(row=1, column=0, sticky=tk.NSEW)
+    middle_frame.grid(row=1, column=0, sticky=tk.NSEW, padx=10, pady=10)
 
     bottom_frame = tk.Frame(root, width=600, height=100, bg=DARK_GREY)
-    bottom_frame.grid(row=2, column=0, sticky=tk.NSEW)
+    bottom_frame.grid(row=2, column=0, sticky=tk.NSEW, padx=10, pady=10)
 
     username_label = tk.Label(top_frame, text=username_name, font=FONT, bg=DARK_GREY, fg=WHITE)
     username_label.pack(side=tk.LEFT, padx=10)
 
-    username_button = tk.Button(top_frame, text="Log_out", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
+    username_button = tk.Button(top_frame, text="Logout", font=BUTTON_FONT, bg=MEDIUM_GREY, fg=WHITE,
                                 command=lambda: Log_out(root, username_name))
-    username_button.pack(side=tk.LEFT, padx=15)
-    active_user_button = tk.Button(top_frame, text="Active users", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
+    username_button.pack(side=tk.LEFT, padx=15, pady=2)
+    active_user_button = tk.Button(top_frame, text="Active Users", font=BUTTON_FONT, bg=MEDIUM_GREY, fg=WHITE,
                                    command=lambda: show_active_user(online_users))
-    active_user_button.pack(side=tk.LEFT, padx=15)
+    active_user_button.pack(side=tk.LEFT, padx=15, pady=2)
 
     message_textbox = tk.Entry(bottom_frame, font=FONT, bg=MEDIUM_GREY, fg=WHITE, width=38)
-    message_textbox.pack(side=tk.LEFT, padx=10)
+    message_textbox.pack(side=tk.LEFT, padx=10, pady=5)
 
-    message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=OCEAN_BLUE, fg=WHITE,
+    message_button = tk.Button(bottom_frame, text="Send", font=BUTTON_FONT, bg=MEDIUM_GREY, fg=WHITE,
                                command=lambda: send_message(message_textbox))
-    message_button.pack(side=tk.LEFT, padx=10)
+    message_button.pack(side=tk.LEFT, padx=10, pady=5)
 
-    message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=MEDIUM_GREY, fg=WHITE, width=67,
+    message_box = scrolledtext.ScrolledText(middle_frame, font=SMALL_FONT, bg=WHITE, fg=MEDIUM_GREY, width=67,
                                             height=26.5)
     message_box.config(state=tk.DISABLED)
     message_box.pack(side=tk.TOP)

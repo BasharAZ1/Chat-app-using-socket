@@ -26,7 +26,7 @@ def listen_for_messages(client, username):
                 break
         if message != '':
 
-            final_msg = username + '~' + message
+            final_msg = username + ' ~ ' + message
             send_messages_to_all('message,' + final_msg)
             print(final_msg)
 
