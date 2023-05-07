@@ -14,10 +14,7 @@ HOST = '127.0.0.1'
 PORT = 1234
 Error_message_flag = False
 FONT_labels = ("Helvetica", 30)
-# DARK_GREY = '#121212'
 DARK_GREY_Sign_UP = '#A9A9A9'
-# MEDIUM_GREY = '#1F1B24'
-# OCEAN_BLUE = '#464EB8'
 OCEAN_BLUE = "#0077b6"
 DARK_GREY = "#2c2c2c"
 MEDIUM_GREY = "#4f4f4f"
@@ -243,16 +240,18 @@ def chat_window(username_name):
                                             height=26.5)
     message_box.config(state=tk.DISABLED)
     message_box.pack(side=tk.TOP)
-    root.protocol("WM_DELETE_WINDOW", partial(on_close,root,username_name))
+    root.protocol("WM_DELETE_WINDOW", partial(on_close, root, username_name))
     return message_box
 
-def on_close(root,username):
+
+def on_close(root, username):
     if messagebox.askokcancel("Quit", "Do you want to quit?"):
         # Send a logout message to the server
         message = 'log_out,' + username
         client.sendall(message.encode())
         # Close the chat window and exit the program
         root.destroy()
+
 
 def show_active_user(user_names_str):
     window = tk.Toplevel()
@@ -323,7 +322,6 @@ def listen_for_messages_from_server(client):
             add_message(received_list[1], mychat)
 
 
-
 def connect():
     # try except block
     try:
@@ -335,11 +333,7 @@ def connect():
     except:
         messagebox.showerror("Unable to connect to server", f"Unable to connect to server {HOST} {PORT}")
 
-
-
     threading.Thread(target=listen_for_messages_from_server, args=(client,)).start()
-
-
 
 
 def send_message(message_textbox):

@@ -50,7 +50,6 @@ def send_messages_to_all(message):
 # Function to handle client
 def client_handler(client):
     # Server will listen for client message that will
-    # Contain the username
 
     while 1:
 
@@ -76,12 +75,6 @@ def client_handler(client):
             send_messages_to_all('userloggedin,' + msg_parts[1] + ' Has joined the chat,' + active_clients_str)
             break
 
-        elif msg_parts[0] == 'log_out':
-            q.change_status_login(msg_parts[1])
-            active_clients.remove((msg_parts[1], client))
-            active_clients_str = active_clients_str.replace(msg_parts[1] + '###', '')
-            send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat,' + active_clients_str)
-
     threading.Thread(target=listen_for_messages, args=(client, msg_parts[1],)).start()
 
 
@@ -93,11 +86,6 @@ def main():
     # SOCK_STREAM: we are using TCP packets for communication
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     q.create_users_table()
-    # q.add_user("ayal123","Aa123456","ayal","abo", "male", "ayal123@gmail.com")
-    # q.add_user("kinan123", "Aa123456", "kinan", "hino", "male", "kinan@gmail.com")
-    # q.add_user("BasharAli159", "Aa123456", "bash", "ali", "female", "basha@gmail.com")
-    # print(q.change_status_login("ayal123"))
-    # Creating a try catch block
     try:
         # Provide the server with an address in the form of
         # host IP and port
