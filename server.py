@@ -19,6 +19,7 @@ def listen_for_messages(client, username):
         if len(msg_parts) == 2:
             if msg_parts[0] == 'log_out':
                 active_clients.remove((msg_parts[1], client))
+                q.change_status_login(msg_parts[1])
                 global active_clients_str
                 active_clients_str = active_clients_str.replace(msg_parts[1] + '###', '')
                 send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat,' + active_clients_str)
@@ -76,6 +77,7 @@ def client_handler(client):
             break
 
         elif msg_parts[0] == 'log_out':
+            q.change_status_login(msg_parts[1])
             active_clients.remove((msg_parts[1], client))
             active_clients_str = active_clients_str.replace(msg_parts[1] + '###', '')
             send_messages_to_all('log_out,' + msg_parts[1] + ' Has left the chat,' + active_clients_str)
@@ -91,10 +93,10 @@ def main():
     # SOCK_STREAM: we are using TCP packets for communication
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     q.create_users_table()
-    q.add_user("ayal123","Aa123456","ayal","abo", "male", "ayal123@gmail.com")
-    q.add_user("kinan123", "Aa123456", "kinan", "hino", "male", "kinan@gmail.com")
-    q.add_user("BasharAli159", "Aa123456", "bash", "ali", "female", "basha@gmail.com")
-    print(q.change_status_login("ayal123"))
+    # q.add_user("ayal123","Aa123456","ayal","abo", "male", "ayal123@gmail.com")
+    # q.add_user("kinan123", "Aa123456", "kinan", "hino", "male", "kinan@gmail.com")
+    # q.add_user("BasharAli159", "Aa123456", "bash", "ali", "female", "basha@gmail.com")
+    # print(q.change_status_login("ayal123"))
     # Creating a try catch block
     try:
         # Provide the server with an address in the form of

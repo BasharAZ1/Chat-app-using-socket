@@ -86,6 +86,8 @@ def add_user(username, password, first_name, last_name, gender, email):
 def login(username, password):
     conn = create_connection()
     cur = conn.cursor()
+    if check_active_status(username):
+        return "Sign in,False,User already logged in"
     query = "SELECT password FROM user_table WHERE username = ?"
     cur.execute(query, (username,))
     result = cur.fetchone()
@@ -95,6 +97,7 @@ def login(username, password):
     hashed_pass = result[0]
     hash_input = hash_password(password)
     if hash_input == hashed_pass:
+        change_status_login(username)
         return "Sign in,True," + username
     else:
 
@@ -147,7 +150,7 @@ def change_email_address(username, new_email):
     return True
 
 def change_status_login(username):
-
+    print("im in!!")
     conn = create_connection()
     if conn is None:
         return False
@@ -161,9 +164,30 @@ def change_status_login(username):
     else:
         query = "UPDATE user_table SET status = 0 WHERE username = ?"
         cur.execute(query, (username,))
-    print(f"stattt {user_status}")
+    status_query = 'SELECT status FROM user_table WHERE username = ?'
+    cur.execute(status_query, (username,))
+    new_status = cur.fetchone()[0]
+    print(f"stattt {username}, {user_status}, {new_status}")
     conn.commit()
     cur.close()
     conn.close()
     return True
 
+def check_active_status(username):
+
+    conn = create_connection()
+    if conn is None:
+        return False
+    cur = conn.cursor()
+    status_query = 'SELECT status FROM user_table WHERE username = ?'
+    cur.execute(status_query, (username,))
+    result = cur.fetchone()
+    if result is not None:
+        user_status = result[0]
+        print(f"{username}, {user_status}")
+        if user_status == 1:
+            return True
+        return False
+    else:
+        print(f"{username} result is NONE!!")
+        return False

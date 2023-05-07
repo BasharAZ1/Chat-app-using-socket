@@ -4,6 +4,7 @@ import threading
 import tkinter
 import tkinter as tk
 import re
+from functools import partial
 from tkinter import scrolledtext, BOTH, ttk
 from tkinter import messagebox
 import customtkinter
@@ -242,8 +243,16 @@ def chat_window(username_name):
                                             height=26.5)
     message_box.config(state=tk.DISABLED)
     message_box.pack(side=tk.TOP)
+    root.protocol("WM_DELETE_WINDOW", partial(on_close,root,username_name))
     return message_box
 
+def on_close(root,username):
+    if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        # Send a logout message to the server
+        message = 'log_out,' + username
+        client.sendall(message.encode())
+        # Close the chat window and exit the program
+        root.destroy()
 
 def show_active_user(user_names_str):
     window = tk.Toplevel()
