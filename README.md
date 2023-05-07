@@ -13,7 +13,8 @@ A basic chat application built using Python, Tkinter, and SQLite. The project co
 
 - Python 3.x
 - Tkinter (included in Python standard library)
-
+- customtkinter (pip3 install customtkinter)
+- 
 ## How to use
 
 1. Clone the repository or download the source code.
