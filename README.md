@@ -41,4 +41,6 @@ A login window will appear. Enter a username and password or create a new accoun
 
 You can customize the appearance of the chat window by modifying the color codes and fonts in the `client.py` file.
 
+## License
 
+This project is licensed under the MIT license. See 'LICENSE' for more information.
